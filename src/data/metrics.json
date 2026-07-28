@@ -1,0 +1,20 @@
+[
+  {
+    "id": "metric-1",
+    "label": "YEARS OF EXPERIENCE",
+    "value": "4+",
+    "description": "Building high-performance React & web applications"
+  },
+  {
+    "id": "metric-2",
+    "label": "ENTERPRISE IMPACT",
+    "value": "100%",
+    "description": "Delivering high-impact solutions for NTT DATA, HCL, and Contrader"
+  },
+  {
+    "id": "metric-3",
+    "label": "REDUNDANT RENDERS REDUCED",
+    "value": "40%",
+    "description": "State management optimization with Recoil & performance tuning"
+  }
+]

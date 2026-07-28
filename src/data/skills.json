@@ -1,0 +1,44 @@
+[
+  {
+    "category": "Languages & Core",
+    "skills": [
+      { "name": "TypeScript", "isPrimary": true },
+      { "name": "JavaScript (ES6+)", "isPrimary": true },
+      { "name": "HTML5", "isPrimary": true },
+      { "name": "CSS3 / SASS", "isPrimary": false }
+    ]
+  },
+  {
+    "category": "Frameworks & Libraries",
+    "skills": [
+      { "name": "React", "isPrimary": true },
+      { "name": "Next.js", "isPrimary": true },
+      { "name": "Tailwind CSS", "isPrimary": true },
+      { "name": "Angular", "isPrimary": false },
+      { "name": "Vue", "isPrimary": false },
+      { "name": "MUI / Bootstrap", "isPrimary": false }
+    ]
+  },
+  {
+    "category": "Testing & QA",
+    "skills": [
+      { "name": "Jest", "isPrimary": true },
+      { "name": "Vitest", "isPrimary": true },
+      { "name": "React Testing Library", "isPrimary": true },
+      { "name": "Protractor / E2E Testing", "isPrimary": false }
+    ]
+  },
+  {
+    "category": "Tools & Architecture",
+    "skills": [
+      { "name": "REST API", "isPrimary": true },
+      { "name": "Recoil", "isPrimary": true },
+      { "name": "Recharts & Chart.js", "isPrimary": true },
+      { "name": "RxJS", "isPrimary": false },
+      { "name": "Docker", "isPrimary": false },
+      { "name": "CI/CD (Jenkins)", "isPrimary": false },
+      { "name": "Git & Jira", "isPrimary": false },
+      { "name": "MongoDB", "isPrimary": false }
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "exp-1",
+    "company": "Contrader",
+    "role": "Front End Developer",
+    "location": "Italy (Remote)",
+    "period": "2025 — Present",
+    "isCurrent": true,
+    "type": "Full-Time",
+    "highlights": [
+      "Engineered a scalable frontend architecture capable of handling complex, simultaneous data streams for real-time industrial telemetry.",
+      "Optimized state management by transitioning from complex useEffect chains to efficient Recoil selectors, reducing redundant render cycles by 40% and eliminating Cumulative Layout Shifts (CLS).",
+      "Developed comprehensive analytics dashboards using Recharts, enabling operators to identify bottlenecks and decreasing average time-to-resolution for system faults by 25%.",
+      "Implemented modern testing strategies (TypeScript, Vitest/Jest) to ensure the high reliability of critical data-handling components and edge-case logic."
+    ],
+    "techStack": ["React", "TypeScript", "Recoil", "Recharts", "Vitest", "Jest", "Telemetry"]
+  },
+  {
+    "id": "exp-2",
+    "company": "HCL Technologies",
+    "role": "Front End Developer",
+    "location": "Italy",
+    "period": "2023 — 2025",
+    "isCurrent": false,
+    "type": "Full-Time",
+    "highlights": [
+      "Accelerated the development of HCL’s flagship product (BigFix) by rapidly onboarding and delivering critical features within the first week, boosting team velocity by 15%.",
+      "Orchestrated UI enhancements in collaboration with a US-based team, developing a reusable React component library that improved interface quality and consistency by 20%.",
+      "Conducted 2-3 detailed PR reviews weekly in an Agile environment, enforcing strict coding standards, syntax, logic, and performance best practices.",
+      "Streamlined project execution across diverse global teams, achieving a 25% improvement in cross-team collaboration efficiency."
+    ],
+    "techStack": ["React", "TypeScript", "Component Library", "Agile", "BigFix"]
+  },
+  {
+    "id": "exp-3",
+    "company": "NTT DATA",
+    "role": "Front End Developer",
+    "location": "Italy",
+    "period": "2022 — 2023",
+    "isCurrent": false,
+    "type": "Full-Time",
+    "highlights": [
+      "Maintained a strict zero-defect rate for multiple enterprise projects in the highly-regulated banking sector, demonstrating extreme attention to detail and quality assurance.",
+      "Expedited project timelines by rapidly developing key components for an online course customer journey, resulting in a 30% faster time-to-market.",
+      "Implemented a rigorous suite of unit, integration, and end-to-end tests (Jest, React Testing Library, Protractor), reducing post-deployment bugs by 40% and increasing code reliability.",
+      "Collaborated on resolving a critical Jenkins CI/CD build pipeline issue, identifying the root cause under tight deadlines and ensuring a 100% successful recovery."
+    ],
+    "techStack": ["React", "Jest", "React Testing Library", "Protractor", "Jenkins CI/CD"]
+  }
+]
