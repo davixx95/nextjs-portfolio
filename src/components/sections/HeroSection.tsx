@@ -18,10 +18,10 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          
+
           {/* Left Column: Intro, Headline, Bio, CTAs & Socials */}
           <div className="lg:col-span-7 space-y-6 text-left">
-            
+
             {/* Status & Location Badges */}
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant="status-active" className="py-1 px-3">
@@ -52,7 +52,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
 
             {/* Impactful & Likable Bio */}
             <p className="text-base sm:text-lg text-text-muted font-sans leading-relaxed max-w-2xl">
-              Results-driven <strong className="text-text-main font-semibold">Front End Developer</strong> specializing in React, Next.js, modern state management, and performance optimization.<br/>I bring a contractor mindset to enterprise environments, having delivered high-impact web solutions for industry leaders like <strong className="text-text-main font-semibold">NTT DATA</strong> and <strong className="text-text-main font-semibold">HCL Technologies</strong>.
+              Results-driven <strong className="text-text-main font-semibold">Front End Developer</strong> specializing in React, Next.js, modern state management, and performance optimization.<br />I bring a contractor mindset to enterprise environments, having delivered high-impact web solutions for industry leaders like <strong className="text-text-main font-semibold">NTT DATA</strong> and <strong className="text-text-main font-semibold">HCL Technologies</strong>.
             </p>
 
             {/* Action Buttons & Social Links */}
@@ -108,16 +108,16 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
           {/* Right Column: Headshot Frame with Ambient Glow & Badges */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end relative">
             <div className="relative group">
-              
+
               {/* Outer Decorative Ring Glow */}
               <div className="absolute -inset-1.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-indigo-500 rounded-full blur-lg opacity-40 group-hover:opacity-75 transition duration-500" />
-              
+
               {/* Headshot Card Container */}
               <div className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full p-2 bg-surface/90 border border-emerald-500/30 backdrop-blur-md shadow-2xl overflow-hidden flex items-center justify-center">
-                
+
                 {/* Background Glow inside Container */}
                 <div className="absolute -inset-20 group-hover:-inset-100 transition-[inset] duration-400 bg-gradient-to-b from-emerald-500/10 via-transparent to-background/80 pointer-events-none z-50" />
-                
+
                 <Image
                   src="/headshot.jpeg"
                   alt="Davide Fedele - Front End Developer"
@@ -159,7 +159,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
           {coreStack.map((skill, index) => (
             <React.Fragment key={skill}>
               <span className="hover:text-primary transition-colors cursor-default">{skill}</span>
-              {index < coreStack.length - 1 && <span className="text-border">/</span>}
+              {index < coreStack.length - 1 && <span>/</span>}
             </React.Fragment>
           ))}
         </div>

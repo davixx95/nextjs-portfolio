@@ -6,10 +6,11 @@ This document contains essential environment context, setup instructions, and co
 
 ## 🚨 CRITICAL RULE: Command Execution Environment
 
-This project runs on **NixOS** using **Nix Flakes** (`flake-parts`), **devenv**, and **direnv** (`nix-direnv`).
+This project runs on **NixOS** using **Nix Flakes** (`flake-parts`), **devenv**, and **direnv** (`nix-direnv`). It is also accessed via WSL from Windows.
 
 > [!CAUTION]
 > **Node.js, npm, and npx are NOT installed in the global system `PATH`.**
+> When running from a Windows host (like PowerShell), commands must be prefixed with `wsl`, therefore first ascertain the current operating system.
 > Attempting to run `npm`, `node`, or `npx` directly in a standard shell invocation will fail with `command not found: node` or `command not found: npm`.
 
 ### How to Run Commands
@@ -20,14 +21,14 @@ All commands interacting with Node.js, npm, or workspace tooling **MUST** be exe
 `direnv` automatically uses `nix-direnv` cached development shell for instant execution without startup overhead.
 
 ```bash
-direnv exec . <command>
+wsl direnv exec . <command>
 ```
 
 #### 2. Alternative Method: `nix develop --impure -c`
 If `direnv` is unavailable or you need an isolated flake subshell:
 
 ```bash
-nix develop --impure --command <command>
+wsl nix develop --impure --command <command>
 ```
 *Note: The `--impure` flag is mandatory due to devenv/flake environment configuration.*
 
@@ -37,14 +38,14 @@ nix develop --impure --command <command>
 
 | Task | Command |
 | :--- | :--- |
-| **Run Dev Server** | `direnv exec . npm run dev` |
-| **Build Project** | `direnv exec . npm run build` |
-| **Start Production Server** | `direnv exec . npm start` |
-| **Run Linting** | `direnv exec . npm run lint` |
-| **Install Dependency** | `direnv exec . npm install <package>` |
-| **Execute NPX Tool** | `direnv exec . npx <tool>` |
-| **Run Node Script** | `direnv exec . node <script>` |
-| **Check Node Version** | `direnv exec . node -v` |
+| **Run Dev Server** | `wsl direnv exec . npm run dev` |
+| **Build Project** | `wsl direnv exec . npm run build` |
+| **Start Production Server** | `wsl direnv exec . npm start` |
+| **Run Linting** | `wsl direnv exec . npm run lint` |
+| **Install Dependency** | `wsl direnv exec . npm install <package>` |
+| **Execute NPX Tool** | `wsl direnv exec . npx <tool>` |
+| **Run Node Script** | `wsl direnv exec . node <script>` |
+| **Check Node Version** | `wsl direnv exec . node -v` |
 
 ---
 
@@ -73,8 +74,8 @@ nix develop --impure --command <command>
 ## 💡 Troubleshooting & Agent Guidelines
 
 1. **`command not found: node` / `command not found: npm`**:
-   - **Cause**: Command was run raw without `direnv exec .` or `nix develop`.
-   - **Fix**: Prepend `direnv exec .` to your command (e.g. `direnv exec . npm run build`).
+   - **Cause**: Command was run raw without `wsl direnv exec .` or `wsl nix develop`.
+   - **Fix**: Prepend `wsl direnv exec .` to your command (e.g. `wsl direnv exec . npm run build`).
 
 2. **Background Processes**:
    - When launching dev servers (`npm run dev`), launch them asynchronously or in background tasks so execution turns are not blocked.
