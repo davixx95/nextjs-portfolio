@@ -103,11 +103,6 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
                               <h3 className="text-xl font-bold font-sans text-text-main">
                                 {project.title}
                               </h3>
-                              {project.featured && (
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                                  FEATURED
-                                </span>
-                              )}
                             </div>
                           </div>
 

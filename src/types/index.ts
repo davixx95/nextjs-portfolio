@@ -26,7 +26,6 @@ export interface Project {
   tags: string[];
   githubUrl?: string;
   liveUrl?: string;
-  featured: boolean;
 }
 
 export interface Metric {

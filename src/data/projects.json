@@ -5,8 +5,7 @@
     "description": "Scalable real-time telemetry frontend handling complex simultaneous data streams with Recoil selectors, eliminating CLS and reducing redundant renders by 40%.",
     "status": "active",
     "tags": ["React", "TypeScript", "Recoil", "Recharts", "Vitest"],
-    "githubUrl": "https://github.com/davidefedele/industrial-telemetry",
-    "featured": true
+    "githubUrl": "https://github.com/davidefedele/industrial-telemetry"
   },
   {
     "id": "project-2",
@@ -14,8 +13,7 @@
     "description": "Reusable React component library built for flagship enterprise products, improving interface consistency by 20% and accelerating development velocity.",
     "status": "active",
     "tags": ["React", "TypeScript", "Tailwind CSS", "Jest", "RTL"],
-    "githubUrl": "https://github.com/davidefedele/enterprise-ui-library",
-    "featured": true
+    "githubUrl": "https://github.com/davidefedele/enterprise-ui-library"
   },
   {
     "id": "project-3",
@@ -23,7 +21,6 @@
     "description": "High-reliability zero-defect web application built with strict unit, integration, and E2E test suites (Jest, Protractor), accelerating time-to-market by 30%.",
     "status": "active",
     "tags": ["React", "Jest", "React Testing Library", "Jenkins", "Protractor"],
-    "githubUrl": "https://github.com/davidefedele/banking-customer-journey",
-    "featured": true
+    "githubUrl": "https://github.com/davidefedele/banking-customer-journey"
   }
 ]
