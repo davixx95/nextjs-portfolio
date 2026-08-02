@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "@/app/globals.css";
+import CustomScrollbar from "@/components/ui/CustomScrollbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="bg-background text-text-main font-sans antialiased min-h-screen flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
+          <CustomScrollbar />
         </ThemeProvider>
       </body>
     </html>

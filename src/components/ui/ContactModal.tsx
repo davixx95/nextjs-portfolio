@@ -37,7 +37,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-lg bg-surface border border-border rounded-xl shadow-2xl p-6 pt-0 space-y-6 text-text-main"
+        className="relative w-full max-w-lg bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-6 text-text-main"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

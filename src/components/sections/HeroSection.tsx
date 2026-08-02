@@ -33,7 +33,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                 <div className="absolute -inset-50 group-hover:-inset-100 transition-[inset] duration-400 bg-gradient-to-b from-emerald-500/10 via-transparent to-background/80 pointer-events-none z-50" />
 
                 <Image
-                  src="/headshot.jpeg"
+                  src="/headshot.jpg"
                   alt="Davide Fedele - Front End Developer"
                   width={320}
                   height={320}
@@ -95,7 +95,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
 
             {/* Impactful & Likable Bio */}
             <p className="text-base sm:text-lg text-text-muted font-sans leading-relaxed max-w-2xl">
-              <strong className="text-text-main font-semibold">Frontend Developer</strong> shipping high-impact React and Next.js applications. Trusted by enterprise leaders like <strong className="text-text-main font-semibold">NTT DATA</strong> and <strong className="text-text-main font-semibold">HCL Technologies</ strong> to build and optimize web solutions.
+              <strong className="text-text-main font-semibold">React</strong> ecosystem expert. I build resilient, high-performance web applications for enterprise clients, blending deep technical precision with business-driven results.
             </p>
 
             {/* Action Buttons & Social Links */}
@@ -151,15 +151,15 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
         </div>
 
         {/* Quick Tech Highlights Pill Ribbon at Bottom */}
-        <div className="mt-12 pt-6 border-t border-border/60 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-mono text-text-muted">
+        <div className="mt-12 pt-6 border-t border-border/60 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-mono text-text-muted cursor-default">
           <div className="flex items-center gap-2 text-primary font-semibold">
             <Code2 className="w-4 h-4 text-primary" />
             <span>CORE STACK:</span>
           </div>
           {coreStack.map((skill, index) => (
             <React.Fragment key={skill}>
-              <span className="hover:text-primary transition-colors cursor-default">{skill}</span>
-              {index < coreStack.length - 1 && <span>/</span>}
+              <span className="hover:text-primary transition-colors">{skill}</span>
+              {index < coreStack.length - 1 && <span className="text-border">/</span>}
             </React.Fragment>
           ))}
         </div>
