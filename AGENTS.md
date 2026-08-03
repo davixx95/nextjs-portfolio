@@ -1,88 +1,18 @@
 # AGENTS.md
 
-This document contains essential environment context, setup instructions, and command execution guidelines for AI coding agents working on this project.
+**Tech Stack**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Framer Motion, TypeScript 5.7.
 
----
+## 🚨 CRITICAL RULE: Command Execution
 
-## 🚨 CRITICAL RULE: Command Execution Environment
-
-This project runs on **NixOS** using **Nix Flakes** (`flake-parts`), **devenv**, and **direnv** (`nix-direnv`). It is also accessed via WSL from Windows.
-
-> [!CAUTION]
-> **Node.js, npm, and npx are NOT installed in the global system `PATH`.**
-> When running from a Windows host (like PowerShell), commands must be prefixed with `wsl`, therefore first ascertain the current operating system.
-> Attempting to run `npm`, `node`, or `npx` directly in a standard shell invocation will fail with `command not found: node` or `command not found: npm`.
-
-### How to Run Commands
-
-All commands interacting with Node.js, npm, or workspace tooling **MUST** be executed using one of the following wrappers:
-
-#### 1. Recommended Method (Fastest & Cached): `direnv exec .`
-
-`direnv` automatically uses `nix-direnv` cached development shell for instant execution without startup overhead.
-
+Node.js and npm are NOT in the global `PATH`. This project is accessed via WSL.
+**All node/npm/npx commands MUST be prefixed with:**
 ```bash
 wsl direnv exec . <command>
 ```
+*(Fallback: `wsl nix develop --impure -c <command>`)*
 
-#### 2. Alternative Method: `nix develop --impure -c`
+## 💡 Agent Guidelines
 
-If `direnv` is unavailable or you need an isolated flake subshell:
-
-```bash
-wsl nix develop --impure --command <command>
-```
-
-_Note: The `--impure` flag is mandatory due to devenv/flake environment configuration._
-
----
-
-## 🛠️ Quick Command Cheat Sheet
-
-| Task                        | Command                                   |
-| :-------------------------- | :---------------------------------------- |
-| **Run Dev Server**          | `wsl direnv exec . npm run dev`           |
-| **Build Project**           | `wsl direnv exec . npm run build`         |
-| **Start Production Server** | `wsl direnv exec . npm start`             |
-| **Run Linting**             | `wsl direnv exec . npm run lint`          |
-| **Install Dependency**      | `wsl direnv exec . npm install <package>` |
-| **Execute NPX Tool**        | `wsl direnv exec . npx <tool>`            |
-| **Run Node Script**         | `wsl direnv exec . node <script>`         |
-| **Check Node Version**      | `wsl direnv exec . node -v`               |
-
----
-
-## 🏗️ Technical Stack & Project Architecture
-
-- **Framework**: Next.js 15 (App Router)
-- **UI Library**: React 19
-- **Styling**: Tailwind CSS v4 (`@tailwindcss/postcss`)
-- **Animation**: Framer Motion
-- **Icons & Theme**: Lucide React, Next-Themes
-- **Language**: TypeScript 5.7
-- **Nix Shell**: `flake.nix` (with `flake-parts` & `devenv` exposing Node.js 22)
-
----
-
-## 📂 Key Configuration Files
-
-- `flake.nix`: Defines system outputs, flake-parts integration, and devenv module (Node.js 22 shell package).
-- `.envrc`: Evaluates flake environment (`use flake . --impure`).
-- `package.json`: Project metadata and dependency manifest.
-- `next.config.ts`: Next.js application configuration.
-- `postcss.config.mjs` & `tailwind.config.ts`: PostCSS and Tailwind CSS styling configurations.
-
----
-
-## 💡 Troubleshooting & Agent Guidelines
-
-1. **`command not found: node` / `command not found: npm`**:
-   - **Cause**: Command was run raw without `wsl direnv exec .` or `wsl nix develop`.
-   - **Fix**: Prepend `wsl direnv exec .` to your command (e.g. `wsl direnv exec . npm run build`).
-
-2. **Background Processes**:
-   - When launching dev servers (`npm run dev`), launch them asynchronously or in background tasks so execution turns are not blocked.
-
-3. **Verifying Web Development Tasks**:
-   - When implementing features or changing UI behavior, DO NOT rely solely on a successful build (like `npm run build`) as proof of completion.
-   - You MUST use browser tools (e.g., Chrome DevTools MCP or `/browser` slash command) to interact with the application and verify the correct behavior and design visually and functionally.
+- **`command not found: node/npm`**: You forgot the `wsl direnv exec .` prefix.
+- **Dev Servers**: Run `npm run dev` in background tasks so execution isn't blocked.
+- **Visual Verification**: DO NOT rely solely on successful builds. Use browser tools (Chrome DevTools MCP or `/browser`) to verify UI changes.

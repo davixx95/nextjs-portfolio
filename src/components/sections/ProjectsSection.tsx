@@ -66,10 +66,11 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`cursor-pointer px-3 py-1.5 rounded-md transition-all duration-200 ${activeTab === tab.id
+                className={`cursor-pointer px-3 py-1.5 rounded-md transition-all duration-200 ${
+                  activeTab === tab.id
                     ? "bg-primary text-white shadow-sm"
                     : "text-text-muted hover:text-text-main hover:bg-border/30"
-                  }`}
+                }`}
               >
                 {tab.label}
               </button>

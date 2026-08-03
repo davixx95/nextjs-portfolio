@@ -1,6 +1,6 @@
 [
   {
-    "id": "exp-1",
+    "id": "Contrader",
     "company": "Contrader",
     "role": "Front End Developer",
     "location": "Italy (Remote)",
@@ -11,20 +11,18 @@
       "Engineered a scalable frontend architecture capable of handling complex, simultaneous data streams for real-time industrial telemetry.",
       "Optimized state management by transitioning from complex useEffect chains to efficient Recoil selectors, reducing redundant render cycles by 40% and eliminating Cumulative Layout Shifts (CLS).",
       "Developed comprehensive analytics dashboards using Recharts, enabling operators to identify bottlenecks and decreasing average time-to-resolution for system faults by 25%.",
-      "Implemented modern testing strategies (TypeScript, Vitest/Jest) to ensure the high reliability of critical data-handling components and edge-case logic."
+      "Implemented modern testing strategies (TypeScript, Vitest) to ensure the high reliability of critical data-handling components and edge-case logic."
     ],
     "techStack": [
       "React",
       "TypeScript",
       "Recoil",
       "Recharts",
-      "Vitest",
-      "Jest",
-      "Telemetry"
+      "Vitest"
     ]
   },
   {
-    "id": "exp-2",
+    "id": "HCL",
     "company": "HCL Technologies",
     "role": "Front End Developer",
     "location": "Italy",
@@ -40,7 +38,7 @@
     "techStack": ["React", "TypeScript", "Component Library", "Agile", "BigFix"]
   },
   {
-    "id": "exp-3",
+    "id": "NTTData",
     "company": "NTT DATA",
     "role": "Front End Developer",
     "location": "Italy",
