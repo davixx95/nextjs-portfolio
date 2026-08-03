@@ -55,7 +55,8 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
               Projects & Engineering Work
             </h2>
             <p className="text-sm text-text-muted max-w-xl">
-              Open-source applications, tools, and planned architecture side-projects.
+              Open-source applications, tools, and planned architecture
+              side-projects.
             </p>
           </div>
 
@@ -84,7 +85,10 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
           className="relative"
         >
           <div ref={ref}>
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               <AnimatePresence mode="popLayout">
                 {filteredProjects.map((project) => (
                   <motion.div
@@ -95,7 +99,10 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Card hoverable className="flex flex-col justify-between space-y-6 h-full">
+                    <Card
+                      hoverable
+                      className="flex flex-col justify-between space-y-6 h-full"
+                    >
                       <div className="space-y-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
@@ -106,7 +113,9 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
                             </div>
                           </div>
 
-                          <Badge variant={getStatusBadgeVariant(project.status)}>
+                          <Badge
+                            variant={getStatusBadgeVariant(project.status)}
+                          >
                             {project.status.toUpperCase()}
                           </Badge>
                         </div>

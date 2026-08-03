@@ -7,7 +7,8 @@ export function Footer() {
     <footer className="w-full border-t border-border bg-background py-8 transition-colors">
       <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
         <p className="text-xs font-mono text-text-muted">
-          © {currentYear} Davide Fedele. Engineered with Next.js 15 & Tailwind CSS.
+          © {currentYear} Davide Fedele. Engineered with Next.js 15 & Tailwind
+          CSS.
         </p>
         <div className="flex items-center justify-center gap-4 text-xs font-mono text-text-muted">
           <a

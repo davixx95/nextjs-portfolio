@@ -7,7 +7,9 @@ interface CustomScrollbarProps {
   containerRef?: React.RefObject<HTMLElement | null>;
 }
 
-export default function CustomScrollbar({ containerRef }: CustomScrollbarProps) {
+export default function CustomScrollbar({
+  containerRef,
+}: CustomScrollbarProps) {
   const [isHovered, setIsHovered] = useState(false); // True when mouse is physically over the scrollbar
   const [isScrolling, setIsScrolling] = useState(false); // True briefly after a scroll event
   const [isDragging, setIsDragging] = useState(false);
@@ -54,11 +56,12 @@ export default function CustomScrollbar({ containerRef }: CustomScrollbarProps) 
     const minThumbHeight = 40;
     const computedHeight = Math.max(
       (clientHeight / scrollHeight) * clientHeight,
-      minThumbHeight
+      minThumbHeight,
     );
     const maxScrollTop = scrollHeight - clientHeight;
     const maxThumbTop = clientHeight - computedHeight;
-    const computedTop = maxScrollTop > 0 ? (scrollTop / maxScrollTop) * maxThumbTop : 0;
+    const computedTop =
+      maxScrollTop > 0 ? (scrollTop / maxScrollTop) * maxThumbTop : 0;
 
     metricsRef.current = {
       scrollTop,
@@ -117,11 +120,14 @@ export default function CustomScrollbar({ containerRef }: CustomScrollbarProps) 
 
     if (containerRef?.current) {
       dragStartScrollTop.current = containerRef.current.scrollTop;
-      originalScrollBehavior.current = containerRef.current.style.scrollBehavior;
+      originalScrollBehavior.current =
+        containerRef.current.style.scrollBehavior;
       containerRef.current.style.scrollBehavior = "auto"; // Force instant scroll
     } else {
-      dragStartScrollTop.current = window.scrollY || document.documentElement.scrollTop;
-      originalScrollBehavior.current = document.documentElement.style.scrollBehavior;
+      dragStartScrollTop.current =
+        window.scrollY || document.documentElement.scrollTop;
+      originalScrollBehavior.current =
+        document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = "auto"; // Force instant scroll
     }
 
@@ -129,37 +135,36 @@ export default function CustomScrollbar({ containerRef }: CustomScrollbarProps) 
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      const { maxScrollTop, maxThumbTop } = metricsRef.current;
-      if (maxThumbTop <= 0) return;
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    const { maxScrollTop, maxThumbTop } = metricsRef.current;
+    if (maxThumbTop <= 0) return;
 
-      const deltaY = e.clientY - dragStartY.current;
-      const scrollDelta = (deltaY / maxThumbTop) * maxScrollTop;
-      const newScrollTop = Math.min(
-        Math.max(dragStartScrollTop.current + scrollDelta, 0),
-        maxScrollTop
-      );
+    const deltaY = e.clientY - dragStartY.current;
+    const scrollDelta = (deltaY / maxThumbTop) * maxScrollTop;
+    const newScrollTop = Math.min(
+      Math.max(dragStartScrollTop.current + scrollDelta, 0),
+      maxScrollTop,
+    );
 
-      if (containerRef?.current) {
-        containerRef.current.scrollTop = newScrollTop;
-      } else {
-        window.scrollTo({ top: newScrollTop, behavior: "auto" });
-      }
+    if (containerRef?.current) {
+      containerRef.current.scrollTop = newScrollTop;
+    } else {
+      window.scrollTo({ top: newScrollTop, behavior: "auto" });
+    }
 
-      // Instantly update visual position to eliminate 1-frame lag during drag
-      updatePositionDirect();
-    },
-    []
-  );
+    // Instantly update visual position to eliminate 1-frame lag during drag
+    updatePositionDirect();
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
 
     if (containerRef?.current) {
-      containerRef.current.style.scrollBehavior = originalScrollBehavior.current;
+      containerRef.current.style.scrollBehavior =
+        originalScrollBehavior.current;
     } else {
-      document.documentElement.style.scrollBehavior = originalScrollBehavior.current;
+      document.documentElement.style.scrollBehavior =
+        originalScrollBehavior.current;
     }
 
     document.removeEventListener("mousemove", handleMouseMove);
@@ -169,9 +174,7 @@ export default function CustomScrollbar({ containerRef }: CustomScrollbarProps) 
   const isActive = isHovered || isDragging || isScrolling;
 
   return (
-    <div
-      className="fixed right-1 top-0 bottom-0 z-50 w-2.5 pointer-events-auto select-none"
-    >
+    <div className="fixed right-1 top-0 bottom-0 z-50 w-2.5 pointer-events-auto select-none">
       {/* Position container: absolutely NO CSS transitions on transform to guarantee instant 1:1 scroll tracking */}
       <div
         ref={thumbPosRef}

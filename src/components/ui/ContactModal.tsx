@@ -12,11 +12,15 @@ interface ContactModalProps {
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
 
   if (!isOpen) return null;
 
-  const emailAddress = "fedele.davide@gmail.com";
+  const emailAddress = "davide@fedele.dev";
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(emailAddress);
@@ -50,9 +54,12 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
         </button>
 
         <div>
-          <h2 className="text-2xl font-bold font-sans text-text-main">Get in Touch</h2>
+          <h2 className="text-2xl font-bold font-sans text-text-main">
+            Get in Touch
+          </h2>
           <p className="text-sm text-text-muted mt-1">
-            Let&apos;s talk about engineering opportunities, collaborations, or tech architecture.
+            Let&apos;s talk about engineering opportunities, collaborations, or
+            tech architecture.
           </p>
         </div>
 
@@ -86,7 +93,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
             <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto">
               <Check className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-semibold text-text-main">Message Received!</h3>
+            <h3 className="text-lg font-semibold text-text-main">
+              Message Received!
+            </h3>
             <p className="text-xs text-text-muted max-w-xs mx-auto">
               Thank you for reaching out. I will get back to you shortly.
             </p>
@@ -94,7 +103,10 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="modal-name" className="block text-xs font-mono text-text-muted mb-1">
+              <label
+                htmlFor="modal-name"
+                className="block text-xs font-mono text-text-muted mb-1"
+              >
                 NAME
               </label>
               <input
@@ -102,14 +114,19 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Jane Doe"
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="modal-email" className="block text-xs font-mono text-text-muted mb-1">
+              <label
+                htmlFor="modal-email"
+                className="block text-xs font-mono text-text-muted mb-1"
+              >
                 EMAIL ADDRESS
               </label>
               <input
@@ -117,14 +134,19 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 type="email"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 placeholder="jane@company.com"
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="modal-message" className="block text-xs font-mono text-text-muted mb-1">
+              <label
+                htmlFor="modal-message"
+                className="block text-xs font-mono text-text-muted mb-1"
+              >
                 MESSAGE
               </label>
               <textarea
@@ -132,7 +154,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 rows={4}
                 required
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
                 placeholder="Tell me about your project or inquiry..."
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors resize-none"
               />

@@ -18,6 +18,7 @@ This project runs on **NixOS** using **Nix Flakes** (`flake-parts`), **devenv**,
 All commands interacting with Node.js, npm, or workspace tooling **MUST** be executed using one of the following wrappers:
 
 #### 1. Recommended Method (Fastest & Cached): `direnv exec .`
+
 `direnv` automatically uses `nix-direnv` cached development shell for instant execution without startup overhead.
 
 ```bash
@@ -25,27 +26,29 @@ wsl direnv exec . <command>
 ```
 
 #### 2. Alternative Method: `nix develop --impure -c`
+
 If `direnv` is unavailable or you need an isolated flake subshell:
 
 ```bash
 wsl nix develop --impure --command <command>
 ```
-*Note: The `--impure` flag is mandatory due to devenv/flake environment configuration.*
+
+_Note: The `--impure` flag is mandatory due to devenv/flake environment configuration._
 
 ---
 
 ## 🛠️ Quick Command Cheat Sheet
 
-| Task | Command |
-| :--- | :--- |
-| **Run Dev Server** | `wsl direnv exec . npm run dev` |
-| **Build Project** | `wsl direnv exec . npm run build` |
-| **Start Production Server** | `wsl direnv exec . npm start` |
-| **Run Linting** | `wsl direnv exec . npm run lint` |
-| **Install Dependency** | `wsl direnv exec . npm install <package>` |
-| **Execute NPX Tool** | `wsl direnv exec . npx <tool>` |
-| **Run Node Script** | `wsl direnv exec . node <script>` |
-| **Check Node Version** | `wsl direnv exec . node -v` |
+| Task                        | Command                                   |
+| :-------------------------- | :---------------------------------------- |
+| **Run Dev Server**          | `wsl direnv exec . npm run dev`           |
+| **Build Project**           | `wsl direnv exec . npm run build`         |
+| **Start Production Server** | `wsl direnv exec . npm start`             |
+| **Run Linting**             | `wsl direnv exec . npm run lint`          |
+| **Install Dependency**      | `wsl direnv exec . npm install <package>` |
+| **Execute NPX Tool**        | `wsl direnv exec . npx <tool>`            |
+| **Run Node Script**         | `wsl direnv exec . node <script>`         |
+| **Check Node Version**      | `wsl direnv exec . node -v`               |
 
 ---
 

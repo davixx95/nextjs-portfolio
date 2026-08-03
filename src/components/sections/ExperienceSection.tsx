@@ -22,7 +22,8 @@ export function ExperienceSection({ experiences }: ExperienceSectionProps) {
             Work Experience
           </h2>
           <p className="text-sm text-text-muted max-w-xl">
-            A track record of engineering scalable web systems, optimizing frontend performance, and leading DevOps initiatives.
+            A track record of engineering scalable web systems, optimizing
+            frontend performance, and leading DevOps initiatives.
           </p>
         </div>
 
@@ -60,7 +61,9 @@ export function ExperienceSection({ experiences }: ExperienceSectionProps) {
                 <ul className="space-y-2 text-sm text-text-muted list-disc list-inside">
                   {exp.highlights.map((highlight, idx) => (
                     <li key={idx} className="leading-relaxed">
-                      <span className="text-text-main font-sans">{highlight}</span>
+                      <span className="text-text-main font-sans">
+                        {highlight}
+                      </span>
                     </li>
                   ))}
                 </ul>

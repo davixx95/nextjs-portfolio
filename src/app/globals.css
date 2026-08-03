@@ -22,23 +22,23 @@
 }
 
 :root {
-  --background: #F4FBF7;
-  --surface: #FFFFFF;
-  --border: #D1FAE5;
-  --primary: #10B981;
+  --background: #f4fbf7;
+  --surface: #ffffff;
+  --border: #d1fae5;
+  --primary: #10b981;
   --primary-hover: #047857;
-  --text-main: #0F172A;
+  --text-main: #0f172a;
   --text-muted: #475569;
 }
 
 .dark {
-  --background: #080F14;
-  --surface: #111B22;
-  --border: #1E2E3B;
-  --primary: #10B981;
+  --background: #080f14;
+  --surface: #111b22;
+  --border: #1e2e3b;
+  --primary: #10b981;
   --primary-hover: #059669;
-  --text-main: #F3F4F6;
-  --text-muted: #9CA3AF;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
 }
 
 html {
@@ -49,7 +49,9 @@ body {
   background-color: var(--background);
   color: var(--text-main);
   font-family: var(--font-sans), Inter, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   overflow-x: hidden;
 }
 

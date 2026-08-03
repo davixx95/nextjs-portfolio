@@ -10,7 +10,10 @@ interface SkillsSectionProps {
 
 export function SkillsSection({ skillCategories }: SkillsSectionProps) {
   return (
-    <section id="skills" className="py-20 bg-surface/20 border-y border-border/40">
+    <section
+      id="skills"
+      className="py-20 bg-surface/20 border-y border-border/40"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
         {/* Section Header */}
         <div className="space-y-2">
@@ -22,7 +25,8 @@ export function SkillsSection({ skillCategories }: SkillsSectionProps) {
             Skills & Core Competencies
           </h2>
           <p className="text-sm text-text-muted max-w-xl">
-            A comprehensive overview of technologies, frameworks, and architecture paradigms I use daily.
+            A comprehensive overview of technologies, frameworks, and
+            architecture paradigms I use daily.
           </p>
         </div>
 

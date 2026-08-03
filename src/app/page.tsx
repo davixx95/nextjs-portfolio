@@ -19,7 +19,7 @@ export default function Home() {
   const skillCategories = skillsData as SkillCategory[];
   const projects = projectsData as Project[];
   const metrics = metricsData as Metric[];
-  const coreStack = stackData as string[]
+  const coreStack = stackData as string[];
 
   return (
     <div className="flex flex-col min-h-screen">

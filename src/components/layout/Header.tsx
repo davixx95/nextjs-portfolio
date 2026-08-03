@@ -69,7 +69,11 @@ export function Header() {
               aria-label="Toggle menu"
               className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-main border border-border bg-surface"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -108,7 +112,10 @@ export function Header() {
       </header>
 
       {/* Contact Dialog */}
-      <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+      />
     </>
   );
 }

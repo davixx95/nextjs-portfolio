@@ -44,7 +44,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="bg-background text-text-main font-sans antialiased min-h-screen flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+        >
           {children}
           <CustomScrollbar />
         </ThemeProvider>

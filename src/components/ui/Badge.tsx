@@ -2,7 +2,12 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "primary" | "standard" | "status-active" | "status-dev" | "status-planned";
+  variant?:
+    | "primary"
+    | "standard"
+    | "status-active"
+    | "status-dev"
+    | "status-planned";
   children: React.ReactNode;
 }
 
@@ -25,10 +30,7 @@ export function Badge({
   };
 
   return (
-    <span
-      className={cn(baseStyles, variants[variant], className)}
-      {...props}
-    >
+    <span className={cn(baseStyles, variants[variant], className)} {...props}>
       {children}
     </span>
   );

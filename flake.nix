@@ -32,6 +32,8 @@
           name = "portfolio-dev";
 
           packages = with pkgs; [
+            prettier
+            eslint
           ];
 
           languages.javascript = {

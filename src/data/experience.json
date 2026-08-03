@@ -13,7 +13,15 @@
       "Developed comprehensive analytics dashboards using Recharts, enabling operators to identify bottlenecks and decreasing average time-to-resolution for system faults by 25%.",
       "Implemented modern testing strategies (TypeScript, Vitest/Jest) to ensure the high reliability of critical data-handling components and edge-case logic."
     ],
-    "techStack": ["React", "TypeScript", "Recoil", "Recharts", "Vitest", "Jest", "Telemetry"]
+    "techStack": [
+      "React",
+      "TypeScript",
+      "Recoil",
+      "Recharts",
+      "Vitest",
+      "Jest",
+      "Telemetry"
+    ]
   },
   {
     "id": "exp-2",
@@ -45,6 +53,12 @@
       "Implemented a rigorous suite of unit, integration, and end-to-end tests (Jest, React Testing Library, Protractor), reducing post-deployment bugs by 40% and increasing code reliability.",
       "Collaborated on resolving a critical Jenkins CI/CD build pipeline issue, identifying the root cause under tight deadlines and ensuring a 100% successful recovery."
     ],
-    "techStack": ["React", "Jest", "React Testing Library", "Protractor", "Jenkins CI/CD"]
+    "techStack": [
+      "React",
+      "Jest",
+      "React Testing Library",
+      "Protractor",
+      "Jenkins CI/CD"
+    ]
   }
 ]
