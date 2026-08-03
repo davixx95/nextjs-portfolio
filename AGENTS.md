@@ -82,3 +82,7 @@ _Note: The `--impure` flag is mandatory due to devenv/flake environment configur
 
 2. **Background Processes**:
    - When launching dev servers (`npm run dev`), launch them asynchronously or in background tasks so execution turns are not blocked.
+
+3. **Verifying Web Development Tasks**:
+   - When implementing features or changing UI behavior, DO NOT rely solely on a successful build (like `npm run build`) as proof of completion.
+   - You MUST use browser tools (e.g., Chrome DevTools MCP or `/browser` slash command) to interact with the application and verify the correct behavior and design visually and functionally.

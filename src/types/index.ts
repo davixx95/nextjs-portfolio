@@ -22,7 +22,7 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  status: "active" | "in-development" | "planned";
+  status: "active" | "development" | "planned";
   tags: string[];
   githubUrl?: string;
   liveUrl?: string;

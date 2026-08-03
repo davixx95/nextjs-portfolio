@@ -18,6 +18,7 @@ import {
 
 export function HeroSection({ coreStack }: { coreStack: string[] }) {
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const yearsExperience = new Date().getFullYear() - 2022;
 
   return (
     <section
@@ -63,7 +64,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="font-bold text-xs">4+ Yrs Experience</div>
+                  <div className="font-bold text-xs">{yearsExperience}+ Yrs Experience</div>
                   <div className="text-[10px] text-text-muted">
                     NTT DATA • HCL • Contrader
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Copy, Check, Send, Github, Linkedin, Mail } from "lucide-react";
+import { X, Copy, Check, Send, Github, Linkedin, Mail, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "./Button";
 
 interface ContactModalProps {
@@ -12,6 +12,8 @@ interface ContactModalProps {
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,14 +30,38 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: "", email: "", message: "" });
-      onClose();
-    }, 2500);
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message. Please try again.");
+      }
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({ name: "", email: "", message: "" });
+        onClose();
+      }, 2500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,6 +128,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             <div>
               <label
                 htmlFor="modal-name"
@@ -113,12 +146,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 id="modal-name"
                 type="text"
                 required
+                disabled={isSubmitting}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="Jane Doe"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
               />
             </div>
 
@@ -133,12 +167,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 id="modal-email"
                 type="email"
                 required
+                disabled={isSubmitting}
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="jane@company.com"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
               />
             </div>
 
@@ -153,18 +188,28 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 id="modal-message"
                 rows={4}
                 required
+                disabled={isSubmitting}
                 value={formData.message}
                 onChange={(e) =>
                   setFormData({ ...formData, message: e.target.value })
                 }
                 placeholder="Tell me about your project or inquiry..."
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-main text-sm focus:outline-none focus:border-primary transition-colors resize-none disabled:opacity-50"
               />
             </div>
 
-            <Button type="submit" variant="primary" className="w-full">
-              <Send className="w-4 h-4" />
-              <span>Send Message</span>
+            <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Send Message</span>
+                </>
+              )}
             </Button>
           </form>
         )}
