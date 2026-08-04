@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { ContactModal } from "@/components/ui/ContactModal";
-import { Menu, X, Terminal, Mail } from "lucide-react";
+import { Menu, X, Terminal, Mail, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Header() {
@@ -37,15 +37,14 @@ export function Header() {
     const elem = document.getElementById(targetId);
 
     if (elem) {
-      if (isMobileMenuOpen) {
-        // Close menu first, then wait for animation to finish before scrolling
-        setIsMobileMenuOpen(false);
-        setTimeout(() => {
-          elem.scrollIntoView({ behavior: "smooth" });
-        }, 300); // 300ms allows the menu to animate out smoothly
-      } else {
-        elem.scrollIntoView({ behavior: "smooth" });
-      }
+      // Close menu first, then wait for animation to finish before scrolling
+      setIsMobileMenuOpen(false);
+      setTimeout(() => {
+        scroll({
+          behavior: "smooth",
+          top: elem.offsetTop - 64,
+        });
+      }, 300); // 300ms allows the menu to animate out smoothly
     }
   };
 
@@ -74,7 +73,6 @@ export function Header() {
               <a
                 key={link.label}
                 href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
                 className="text-xs font-mono text-text-muted hover:text-primary transition-colors"
               >
                 {link.label}
@@ -86,14 +84,24 @@ export function Header() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
 
+            <a href="/resume.pdf" download="Davide_Fedele_Resume.pdf">
+              <Button
+                variant="primary"
+                size="md"
+                className="shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all"
+                title="Download CV"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+            </a>
             <Button
-              variant="primary"
-              size="sm"
+              variant="secondary"
+              size="md"
               onClick={() => setIsContactOpen(true)}
               className="hidden sm:inline-flex"
+              title="Get in touch"
             >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Get in Touch</span>
+              <Mail className="w-4 h-4" />
             </Button>
 
             {/* Mobile Menu Toggle */}
@@ -121,7 +129,7 @@ export function Header() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="md:hidden overflow-hidden border-b border-border bg-surface space-y-3 relative z-40 shadow-xl"
             >
-              <nav className="flex flex-col gap-3 px-4 pt-4">
+              <nav className="flex flex-col gap-3 p-4">
                 {navLinks.map((link) => (
                   <a
                     key={link.label}
@@ -133,20 +141,6 @@ export function Header() {
                   </a>
                 ))}
               </nav>
-              <div className="pt-2 border-t border-border px-4 pb-4">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setIsContactOpen(true);
-                  }}
-                  className="w-full justify-center"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Get in Touch</span>
-                </Button>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

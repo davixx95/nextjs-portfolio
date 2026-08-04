@@ -19,7 +19,7 @@ export function Button({
 
   const variants = {
     primary:
-      "bg-primary text-white hover:opacity-90 hover:shadow-emerald active:scale-[0.98]",
+      "bg-primary text-white border border-transparent hover:opacity-90 hover:shadow-emerald active:scale-[0.98]",
     secondary:
       "bg-surface text-text-main border border-border hover:border-primary/50 hover:text-primary active:scale-[0.98]",
     outline:

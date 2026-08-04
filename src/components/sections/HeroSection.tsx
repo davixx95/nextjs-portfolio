@@ -64,7 +64,9 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="font-bold text-xs">{yearsExperience}+ Yrs Experience</div>
+                  <div className="font-bold text-xs">
+                    {yearsExperience}+ Yrs Experience
+                  </div>
                   <div className="text-[10px] text-text-muted">
                     NTT DATA • HCL • Contrader
                   </div>
@@ -118,6 +120,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                   variant="primary"
                   size="lg"
                   className="shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all"
+                  title="Download CV"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download CV</span>
@@ -128,6 +131,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                 variant="secondary"
                 size="lg"
                 onClick={() => setIsContactOpen(true)}
+                title="Get in touch"
               >
                 <Mail className="w-4 h-4" />
                 <span>Get in Touch</span>
