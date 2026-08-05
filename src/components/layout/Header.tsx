@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { ContactModal } from "@/components/ui/ContactModal";
@@ -10,11 +10,18 @@ import { motion, AnimatePresence } from "framer-motion";
 export function Header() {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mdDetectorRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) setIsMobileMenuOpen(false);
+      // Hooked up to Tailwind configuration via the hidden md:block element
+      if (mdDetectorRef.current) {
+        const isDesktop =
+          window.getComputedStyle(mdDetectorRef.current).display !== "none";
+        if (isDesktop) setIsMobileMenuOpen(false);
+      }
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -40,9 +47,10 @@ export function Header() {
       // Close menu first, then wait for animation to finish before scrolling
       setIsMobileMenuOpen(false);
       setTimeout(() => {
-        scroll({
+        const headerHeight = headerRef.current?.offsetHeight ?? 64;
+        window.scrollTo({
           behavior: "smooth",
-          top: elem.offsetTop - 64,
+          top: elem.offsetTop - headerHeight,
         });
       }, 300); // 300ms allows the menu to animate out smoothly
     }
@@ -50,7 +58,13 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border transition-colors">
+      {/* Breakpoint detector hooked up to Tailwind's 'md' media query */}
+      <div
+        ref={mdDetectorRef}
+        className="hidden md:block absolute w-0 h-0 invisible pointer-events-none"
+        aria-hidden="true"
+      />
+      <header ref={headerRef} className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between relative z-50">
           {/* Logo / Brand */}
           <a
@@ -73,6 +87,7 @@ export function Header() {
               <a
                 key={link.label}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="text-xs font-mono text-text-muted hover:text-primary transition-colors"
               >
                 {link.label}
