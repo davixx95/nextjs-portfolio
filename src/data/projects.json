@@ -1,42 +1,40 @@
 [
   {
     "id": "project-1",
-    "title": "Industrial Telemetry Platform",
-    "description": "Scalable real-time telemetry frontend handling complex simultaneous data streams with Recoil selectors, eliminating CLS and reducing redundant renders by 40%.",
+    "title": "Factory Line Monitoring Dashboard",
+    "description": "Refactored a legacy React application, replacing brittle useEffect hooks with Recoil selectors to efficiently poll and render factory telemetry data.",
     "status": "active",
     "tags": [
       "React",
       "TypeScript",
       "Recoil",
       "Recharts",
-      "Vitest"
+      "Axios"
     ],
     "githubUrl": "https://github.com/davidefedele/industrial-telemetry"
   },
   {
     "id": "project-2",
-    "title": "Enterprise UI Component Library",
-    "description": "Reusable React component library built for flagship enterprise products, improving interface consistency by 20% and accelerating development velocity.",
+    "title": "Micro-Frontend UI Architecture",
+    "description": "Contributed to an enterprise component library (MUI) and multiple micro-frontends using Module Federation for HCL's product ecosystem.",
     "status": "active",
     "tags": [
       "React",
       "TypeScript",
-      "Tailwind CSS",
-      "Jest",
-      "RTL"
+      "MUI",
+      "Module Federation"
     ],
     "githubUrl": "https://github.com/davidefedele/enterprise-ui-library"
   },
   {
     "id": "project-3",
-    "title": "Customer Journey Application - Banking",
-    "description": "High-reliability zero-defect web application built with strict unit, integration, and E2E test suites (Jest, Protractor), accelerating time-to-market by 30%.",
+    "title": "Banking Customer Journey & Internal Portals",
+    "description": "Prototyped a banking customer journey and built internal legal consulting tools involving complex forms and data tables.",
     "status": "active",
     "tags": [
+      "React",
       "Angular",
-      "RxJS",
-      "Jest",
-      "Protractor"
+      "Jenkins"
     ],
     "githubUrl": "https://github.com/davidefedele/banking-customer-journey"
   },

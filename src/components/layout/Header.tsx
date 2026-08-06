@@ -64,7 +64,10 @@ export function Header() {
         className="hidden md:block absolute w-0 h-0 invisible pointer-events-none"
         aria-hidden="true"
       />
-      <header ref={headerRef} className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border transition-colors">
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border transition-colors"
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between relative z-50">
           {/* Logo / Brand */}
           <a
@@ -107,6 +110,7 @@ export function Header() {
                 title="Download CV"
               >
                 <Download className="w-4 h-4" />
+                CV
               </Button>
             </a>
             <Button

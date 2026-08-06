@@ -3,18 +3,18 @@
     "id": "metric-1",
     "label": "YEARS OF EXPERIENCE",
     "value": "4+",
-    "description": "Building high-performance React & web applications"
+    "description": "Building enterprise React & web applications"
   },
   {
     "id": "metric-2",
-    "label": "ENTERPRISE IMPACT",
-    "value": "100%",
-    "description": "Delivering high-impact solutions for NTT DATA, HCL, and Contrader"
+    "label": "ENTERPRISE APPS",
+    "value": "5",
+    "description": "Contributed to production platforms across Contrader, HCL, and NTT DATA"
   },
   {
     "id": "metric-3",
-    "label": "REDUNDANT RENDERS REDUCED",
-    "value": "40%",
-    "description": "State management optimization with Recoil & performance tuning"
+    "label": "GLOBAL COLLABORATION",
+    "value": "3",
+    "description": "Timezones spanned working with engineering teams in the US, Europe, and India"
   }
 ]
