@@ -45,19 +45,20 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     setErrorMessage(null);
 
     try {
-      const formEndpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ENDPOINT;
-      
-      if (!formEndpoint) {
-        throw new Error("Contact form is not configured. Please set NEXT_PUBLIC_CONTACT_FORM_ENDPOINT.");
-      }
+      const formEndpoint =
+        "https://contact-form-handler.fedele-davide.workers.dev/";
+
+      const payload = new FormData();
+      payload.append("name", formData.name);
+      payload.append("email", formData.email);
+      payload.append("message", formData.message);
 
       const response = await fetch(formEndpoint, {
         method: "POST",
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: JSON.stringify(formData),
+        body: payload,
       });
 
       let data;
