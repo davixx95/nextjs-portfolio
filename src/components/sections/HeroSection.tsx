@@ -149,7 +149,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                   <Linkedin className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://github.com/davidefedele"
+                  href="https://github.com/davixx95"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub Profile"
@@ -158,7 +158,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                   <Github className="w-4 h-4" />
                 </a>
                 <a
-                  href="mailto:fedele.davide@gmail.com"
+                  href="mailto:davide@fedele.dev"
                   aria-label="Send Email"
                   className="p-2.5 rounded-lg border border-border bg-surface/50 text-text-muted hover:text-primary hover:border-primary/50 transition-all hover:scale-105"
                 >

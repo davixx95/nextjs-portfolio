@@ -52,7 +52,7 @@ export function Header() {
           behavior: "smooth",
           top: elem.offsetTop - headerHeight,
         });
-      }, 300); // 300ms allows the menu to animate out smoothly
+      }, 200); // 200ms allows the menu to animate out smoothly
     }
   };
 
@@ -117,7 +117,6 @@ export function Header() {
               variant="secondary"
               size="md"
               onClick={() => setIsContactOpen(true)}
-              className="hidden sm:inline-flex"
               title="Get in touch"
             >
               <Mail className="w-4 h-4" />
