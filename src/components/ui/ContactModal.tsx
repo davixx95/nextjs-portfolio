@@ -45,15 +45,28 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/contact", {
+      const formEndpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ENDPOINT;
+      
+      if (!formEndpoint) {
+        throw new Error("Contact form is not configured. Please set NEXT_PUBLIC_CONTACT_FORM_ENDPOINT.");
+      }
+
+      const response = await fetch(formEndpoint, {
         method: "POST",
         headers: {
+          "Accept": "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        // Fallback if response is not JSON
+        data = { error: "Failed to send message." };
+      }
 
       if (!response.ok) {
         throw new Error(
