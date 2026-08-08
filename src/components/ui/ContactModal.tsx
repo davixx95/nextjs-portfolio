@@ -64,7 +64,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
       let data;
       try {
         data = await response.json();
-      } catch (e) {
+      } catch {
         // Fallback if response is not JSON
         data = { error: "Failed to send message." };
       }

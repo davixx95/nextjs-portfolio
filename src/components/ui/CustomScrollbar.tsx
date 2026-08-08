@@ -77,7 +77,7 @@ export default function CustomScrollbar({
       thumbPosRef.current.style.transform = `translate3d(0, ${computedTop}px, 0)`;
       thumbPosRef.current.style.height = `${computedHeight}px`;
     }
-  }, []);
+  }, [containerRef]);
 
   const handleScroll = useCallback(() => {
     if (rafIdRef.current !== null) return;
@@ -93,7 +93,7 @@ export default function CustomScrollbar({
     hideTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
     }, 1200);
-  }, []);
+  }, [updatePositionDirect]);
 
   useEffect(() => {
     const target = containerRef?.current || window;
@@ -110,7 +110,46 @@ export default function CustomScrollbar({
       if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
-  }, []);
+  }, [containerRef, handleScroll, updatePositionDirect]);
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      const { maxScrollTop, maxThumbTop } = metricsRef.current;
+      if (maxThumbTop <= 0) return;
+
+      const deltaY = e.clientY - dragStartY.current;
+      const scrollDelta = (deltaY / maxThumbTop) * maxScrollTop;
+      const newScrollTop = Math.min(
+        Math.max(dragStartScrollTop.current + scrollDelta, 0),
+        maxScrollTop,
+      );
+
+      if (containerRef?.current) {
+        containerRef.current.scrollTop = newScrollTop;
+      } else {
+        window.scrollTo({ top: newScrollTop, behavior: "auto" });
+      }
+
+      // Instantly update visual position to eliminate 1-frame lag during drag
+      updatePositionDirect();
+    },
+    [containerRef, updatePositionDirect],
+  );
+
+  const handleMouseUp = useCallback(function handleMouseUp() {
+    setIsDragging(false);
+
+    if (containerRef?.current) {
+      containerRef.current.style.scrollBehavior =
+        originalScrollBehavior.current;
+    } else {
+      document.documentElement.style.scrollBehavior =
+        originalScrollBehavior.current;
+    }
+
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  }, [containerRef, handleMouseMove]);
 
   // Dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -134,42 +173,6 @@ export default function CustomScrollbar({
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    const { maxScrollTop, maxThumbTop } = metricsRef.current;
-    if (maxThumbTop <= 0) return;
-
-    const deltaY = e.clientY - dragStartY.current;
-    const scrollDelta = (deltaY / maxThumbTop) * maxScrollTop;
-    const newScrollTop = Math.min(
-      Math.max(dragStartScrollTop.current + scrollDelta, 0),
-      maxScrollTop,
-    );
-
-    if (containerRef?.current) {
-      containerRef.current.scrollTop = newScrollTop;
-    } else {
-      window.scrollTo({ top: newScrollTop, behavior: "auto" });
-    }
-
-    // Instantly update visual position to eliminate 1-frame lag during drag
-    updatePositionDirect();
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-
-    if (containerRef?.current) {
-      containerRef.current.style.scrollBehavior =
-        originalScrollBehavior.current;
-    } else {
-      document.documentElement.style.scrollBehavior =
-        originalScrollBehavior.current;
-    }
-
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-  }, []);
 
   const isActive = isHovered || isDragging || isScrolling;
 
