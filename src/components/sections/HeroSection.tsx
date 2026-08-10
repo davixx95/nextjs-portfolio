@@ -43,7 +43,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                 <div className="absolute -inset-50 group-hover:-inset-100 transition-[inset] duration-400 bg-gradient-to-b from-emerald-500/10 via-transparent to-background/80 pointer-events-none z-50" />
 
                 <Image
-                  src="/headshot.jpg"
+                  src="/headshot.webp"
                   alt="Davide Fedele - Front End Developer"
                   width={320}
                   height={320}
