@@ -45,6 +45,9 @@ export function Header() {
 
     if (elem) {
       // Close menu first, then wait for animation to finish before scrolling
+      const url = new URL(location.href);
+      url.hash = href;
+      history.pushState({}, "", url);
       setIsMobileMenuOpen(false);
       setTimeout(() => {
         const headerHeight = headerRef.current?.offsetHeight ?? 64;

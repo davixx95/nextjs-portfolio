@@ -1,7 +1,25 @@
+"use client";
+
 import React from "react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    e.preventDefault();
+
+    const url = new URL(window.location.href);
+    url.hash = href;
+    window.history.pushState({}, "", url);
+
+    window.scrollTo({
+      behavior: "smooth",
+      top: 0,
+    });
+  };
 
   return (
     <footer className="w-full border-t border-border bg-background py-8 transition-colors">
@@ -29,7 +47,11 @@ export function Footer() {
             LinkedIn
           </a>
           <span>•</span>
-          <a href="#hero" className="hover:text-primary transition-colors">
+          <a
+            href="#hero"
+            onClick={(e) => handleNavClick(e, "#hero")}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
             Back to Top ↑
           </a>
         </div>
