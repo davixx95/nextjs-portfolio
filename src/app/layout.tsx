@@ -3,6 +3,9 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "@/app/globals.css";
 import CustomScrollbar from "@/components/ui/CustomScrollbar";
+import { getPersonJsonLd } from "@/lib/structuredData";
+
+const SITE_URL = "https://davide.fedele.dev";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,10 +19,14 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const title = "Davide Fedele | Senior Fullstack & Systems Engineer";
+const description =
+  "Engineering clean, high-performance web applications, cloud architecture, and microservices with Next.js, TypeScript, and Docker.";
+
 export const metadata: Metadata = {
-  title: "Davide Fedele | Senior Fullstack & Systems Engineer",
-  description:
-    "Engineering clean, high-performance web applications, cloud architecture, and microservices with Next.js, TypeScript, and Docker.",
+  metadataBase: new URL(SITE_URL),
+  title,
+  description,
   keywords: [
     "Davide Fedele",
     "Fullstack Engineer",
@@ -30,6 +37,30 @@ export const metadata: Metadata = {
     "Web Developer Portfolio",
   ],
   authors: [{ name: "Davide Fedele" }],
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: "profile",
+    url: SITE_URL,
+    title,
+    description,
+    siteName: "Davide Fedele — Portfolio",
+    images: [
+      {
+        url: "/headshot.webp",
+        width: 640,
+        height: 640,
+        alt: "Davide Fedele",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: ["/headshot.webp"],
+  },
 };
 
 export default function RootLayout({
@@ -37,6 +68,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const personJsonLd = getPersonJsonLd();
+
   return (
     <html
       lang="en"
@@ -44,6 +77,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="bg-background text-text-main font-sans antialiased min-h-screen flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

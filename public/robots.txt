@@ -1,0 +1,39 @@
+# davide.fedele.dev — personal dev portfolio
+# Open to all crawlers, including AI/LLM and recruiter-facing bots.
+
+User-agent: *
+Allow: /
+
+# Recruiter-facing link preview / discovery bots
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# AI / LLM crawlers used by search and recruiting tools
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://davide.fedele.dev/sitemap.xml
