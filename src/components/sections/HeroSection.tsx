@@ -5,18 +5,16 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ContactModal } from "@/components/ui/ContactModal";
-import { HeroComputerPoster } from "@/components/three/HeroComputerPoster";
 import { Download, Mail, Code2, Linkedin, Github, MapPin } from "lucide-react";
 
 // three.js is ~600 KB, so the 3D computer loads client-side in its own chunk.
-// The poster (same footprint) keeps the layout stable until it's ready.
+// The empty box has the same footprint, so nothing shifts when it arrives;
+// the canvas then fades in once its first frame has rendered.
 const HeroComputer = dynamic(() => import("@/components/three/HeroComputer"), {
   ssr: false,
   loading: () => (
     <div className="relative">
-      <div className="relative h-[24rem] sm:h-[30rem] lg:h-[34rem]">
-        <HeroComputerPoster />
-      </div>
+      <div className="relative h-[24rem] sm:h-[30rem] lg:h-[34rem]" />
       <div className="mt-2 min-h-8" />
     </div>
   ),

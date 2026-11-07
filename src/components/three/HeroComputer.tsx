@@ -56,6 +56,33 @@ const MOBILE_COMMANDS = ["neofetch", "ls", "cat about.md", "ls experience", "hel
 
 useGLTF.preload(MODEL_URL);
 
+function hasWebGL() {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * R3F's `fallback` prop only renders for browsers without <canvas> at all;
+ * when WebGL context creation fails, <Canvas> throws. Catch that here and
+ * show the flat poster instead of taking the hero down.
+ */
+class WebGLBoundary extends React.Component<
+  { fallback: React.ReactNode; children: React.ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
 /* ----------------------------------------------------------------- hooks -- */
 
 function useMediaQuery(query: string) {
@@ -220,9 +247,12 @@ function Computer({
     });
   }, [scene]);
 
-  useEffect(() => {
-    onReady();
-  }, [onReady]);
+  // Report ready only once a frame with the model (and the <Html> screen) has
+  // actually been rendered, so the canvas fade-in never reveals an empty scene.
+  const framesRendered = useRef(0);
+  useFrame(() => {
+    if (framesRendered.current++ === 1) onReady();
+  });
 
   // Size the DOM terminal so it's ~1:1 with screen pixels when focused
   // (crisp text). Focus fits the screen by width or by height, whichever is
@@ -281,6 +311,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
 
   const [focused, setFocused] = useState(false);
   const [ready, setReady] = useState(false);
+  const [webgl] = useState(hasWebGL);
   const inView = useInView(wrapperRef);
   const touch = useMediaQuery("(pointer: coarse)");
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -364,50 +395,56 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
         {...dragHandlers}
         onPointerCancel={dragHandlers.onPointerUp}
       >
-        <Canvas
-          frameloop={inView ? "always" : "never"}
-          dpr={isMobile ? [1, 1.5] : [1, 2]}
-          camera={{ fov: 30, near: 0.1, far: 60, position: [0, 1, 12] }}
-          gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
-          shadows={false}
-          fallback={<HeroComputerPoster />}
-          style={{ touchAction: "pan-y" }}
-          aria-label="Interactive 3D retro computer with a terminal on its screen"
-        >
-          <ambientLight intensity={0.4} />
-          <hemisphereLight args={["#fff8e7", "#2a2620", 0.9]} />
-          <directionalLight position={[4, 6, 5]} intensity={2.6} />
-          <directionalLight position={[-5, 2, -3]} intensity={0.6} color="#7ebae4" />
-          <Rig focused={focused} reducedMotion={reducedMotion} drag={drag} />
-          <Suspense fallback={null}>
-            <Computer onReady={onReady} terminal={terminal} portal={htmlPortalRef} />
-          </Suspense>
-          <ContactShadows
-            position={[0, MODEL_Y - 0.02, 0]}
-            opacity={resolvedTheme === "dark" ? 0.6 : 0.35}
-            scale={8}
-            blur={2.4}
-            far={2}
-            resolution={256}
-          />
-        </Canvas>
+        {webgl ? (
+          <WebGLBoundary fallback={<HeroComputerPoster />}>
+            {/* canvas + screen fade in together once the first frame is drawn */}
+            <div
+              className={cn(
+                "absolute inset-0 transition-opacity duration-500 motion-reduce:transition-none",
+                ready ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <Canvas
+                frameloop={inView ? "always" : "never"}
+                dpr={isMobile ? [1, 1.5] : [1, 2]}
+                camera={{ fov: 30, near: 0.1, far: 60, position: [0, 1, 12] }}
+                gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
+                shadows={false}
+                style={{ touchAction: "pan-y" }}
+                aria-label="Interactive 3D retro computer with a terminal on its screen"
+              >
+                <ambientLight intensity={0.4} />
+                <hemisphereLight args={["#fff8e7", "#2a2620", 0.9]} />
+                <directionalLight position={[4, 6, 5]} intensity={2.6} />
+                <directionalLight position={[-5, 2, -3]} intensity={0.6} color="#7ebae4" />
+                <Rig focused={focused} reducedMotion={reducedMotion} drag={drag} />
+                <Suspense fallback={null}>
+                  <Computer onReady={onReady} terminal={terminal} portal={htmlPortalRef} />
+                </Suspense>
+                <ContactShadows
+                  position={[0, MODEL_Y - 0.02, 0]}
+                  opacity={resolvedTheme === "dark" ? 0.6 : 0.35}
+                  scale={8}
+                  blur={2.4}
+                  far={2}
+                  resolution={256}
+                />
+              </Canvas>
 
-        {/*
-          Fixed mount point for the <Html> screen. Without it drei picks
-          `events.connected || gl.domElement.parentNode`, which changes once R3F
-          connects its events after the first render; drei then unmounts and
-          re-creates the screen's React root mid-commit ("Attempted to
-          synchronously unmount a root...") and can leave it empty. It must
-          cover exactly the canvas box, since drei positions from its corner.
-        */}
-        <div ref={htmlPortalRef} className="pointer-events-none absolute inset-0" />
-
-        <HeroComputerPoster
-          className={cn(
-            "pointer-events-none transition-opacity duration-300",
-            ready ? "opacity-0" : "opacity-100",
-          )}
-        />
+              {/*
+                Fixed mount point for the <Html> screen. Without it drei picks
+                `events.connected || gl.domElement.parentNode`, which changes once R3F
+                connects its events after the first render; drei then unmounts and
+                re-creates the screen's React root mid-commit ("Attempted to
+                synchronously unmount a root...") and can leave it empty. It must
+                cover exactly the canvas box, since drei positions from its corner.
+              */}
+              <div ref={htmlPortalRef} className="pointer-events-none absolute inset-0" />
+            </div>
+          </WebGLBoundary>
+        ) : (
+          <HeroComputerPoster />
+        )}
 
         {focused && (
           <div ref={exitRef} className="absolute right-2 top-2 z-30">

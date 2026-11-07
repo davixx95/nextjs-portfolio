@@ -1,10 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-/**
- * Lightweight 2D stand-in for the 3D computer. Rendered in the static HTML
- * while three.js loads, and as the fallback when WebGL isn't available.
- */
+/** Flat 2D stand-in for the 3D computer, shown only when WebGL isn't available. */
 export function HeroComputerPoster({ className }: { className?: string }) {
   return (
     <div className={cn("absolute inset-0 flex items-center justify-center", className)}>
@@ -14,7 +11,6 @@ export function HeroComputerPoster({ className }: { className?: string }) {
             src="/headshot.webp"
             alt="Davide Fedele"
             fill
-            priority
             sizes="(max-width: 1024px) 60vw, 22rem"
             className="object-cover object-[50%_35%]"
           />
