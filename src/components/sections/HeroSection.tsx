@@ -27,7 +27,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
   return (
     <section
       id="hero"
-      className="relative pt-8 pb-16 md:pt-16 md:pb-12 overflow-hidden"
+      className="relative pt-8 pb-16 md:pt-16 md:pb-12 overflow-clip"
     >
       {/* Background Ambient Glow & Subtle Grid Overlay */}
       <div className="absolute top-1/2 left-1/2 lg:left-3/4 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[40rem] sm:h-[40rem] bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none -z-10" />

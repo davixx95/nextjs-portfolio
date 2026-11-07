@@ -378,7 +378,7 @@ export function Terminal({
   return (
     <div
       ref={rootRef}
-      className="crt-screen relative overflow-hidden rounded-[14px] bg-[#030806] font-mono text-emerald-400 antialiased outline-none"
+      className="crt-screen relative overflow-clip rounded-[14px] bg-[#030806] font-mono text-emerald-400 antialiased outline-none"
       style={{ width, height, fontSize, lineHeight: 1.45 }}
       tabIndex={-1}
       onKeyDown={(e) => {

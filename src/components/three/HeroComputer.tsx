@@ -299,6 +299,11 @@ function Computer({
         >
           <Html
             portal={portal as React.RefObject<HTMLElement>}
+            // drei's wrapper is `overflow: hidden`, which is still scrollable
+            // from script/focus: the 3D plane's bounding box is far larger than
+            // the canvas, so a focus/keyboard/selection auto-scroll would shift
+            // the whole DOM screen off the monitor. `clip` can't scroll at all.
+            wrapperClass="overflow-clip!"
             transform
             distanceFactor={(SCREEN.width * 400) / width}
             zIndexRange={[20, 0]}
@@ -365,6 +370,25 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
       window.removeEventListener("keydown", onKey);
     };
   }, [focused]);
+
+  // Belt and braces for browsers without `overflow: clip` (Safari < 16): if
+  // anything scrolls a container of the screen (not the terminal's own log),
+  // snap it back so the DOM screen stays glued to the monitor.
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const onScroll = (e: Event) => {
+      const el = e.target as HTMLElement;
+      const screen = terminalRootRef.current;
+      if (el === wrapper || !screen || !el.contains?.(screen)) return;
+      if (el.scrollTop || el.scrollLeft) {
+        el.scrollTop = 0;
+        el.scrollLeft = 0;
+      }
+    };
+    wrapper.addEventListener("scroll", onScroll, true);
+    return () => wrapper.removeEventListener("scroll", onScroll, true);
+  }, []);
 
   // Drag anywhere on the canvas (outside the screen) to tilt the computer.
   const canDrag = !focused && !touch;
@@ -433,7 +457,9 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
               )}
             >
               <Canvas
-                frameloop={inView ? "always" : "never"}
+                // "demand" (not "never") off-screen, so resizes still render a
+                // frame and the <Html> screen's transform stays in sync.
+                frameloop={inView ? "always" : "demand"}
                 dpr={isMobile ? [1, 1.5] : [1, 2]}
                 camera={{ fov: 30, near: 0.1, far: 60, position: [0, 1, 12] }}
                 gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
