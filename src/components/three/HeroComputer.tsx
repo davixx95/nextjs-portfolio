@@ -1,0 +1,433 @@
+"use client";
+
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { ContactShadows, Html, useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+import { useTheme } from "next-themes";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Terminal, TerminalController, TerminalProps } from "@/components/terminal/Terminal";
+import { HeroComputerPoster } from "./HeroComputerPoster";
+
+/* ------------------------------------------------------------- constants -- */
+
+// "Computer 90s" by Charlie, via Poly Pizza (CC-BY). 34 KB, 270 triangles.
+const MODEL_URL = "/models/computer-90s.glb";
+const MODEL_SCALE = 30;
+
+/** The monitor's screen quad, in model units (read from the GLB's screen primitive). */
+const SCREEN = {
+  center: [-0.001, 0.05115, 0.0171] as const,
+  tilt: -0.1356, // the screen leans back ~7.8°
+  width: 0.037,
+  height: 0.0294,
+};
+const SCREEN_ASPECT = SCREEN.width / SCREEN.height;
+
+/** World-space box the resting camera keeps in frame. */
+const REST_FIT = { width: 3.7, height: 2.7 };
+const REST_TARGET = new THREE.Vector3(0, 0.05, 0);
+const REST_DIRECTION = new THREE.Vector3(0.12, 0.17, 1).normalize();
+const REST_YAW = -0.32; // turn the computer slightly towards the page text
+const MODEL_Y = -1.05;
+
+/** How much of the canvas the screen fills when focused (1 = edge to edge). */
+const FOCUS_MARGIN = 1.2;
+
+const MODEL_NAME = "hero-computer";
+const SCREEN_NAME = "hero-computer-screen";
+
+const MOBILE_COMMANDS = ["neofetch", "ls", "cat about.md", "ls experience", "help", "clear"];
+
+useGLTF.preload(MODEL_URL);
+
+/* ----------------------------------------------------------------- hooks -- */
+
+function useMediaQuery(query: string) {
+  return useSyncExternalStore(
+    (cb) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", cb);
+      return () => mql.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
+
+function useInView(ref: React.RefObject<HTMLElement | null>) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0.05,
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return inView;
+}
+
+/* ----------------------------------------------------------------- scene -- */
+
+interface DragState {
+  active: boolean;
+  lastX: number;
+  lastY: number;
+  /** target tilt (radians) */
+  x: number;
+  y: number;
+}
+
+const fitDistance = (w: number, h: number, camera: THREE.PerspectiveCamera) => {
+  const vfov = THREE.MathUtils.degToRad(camera.fov);
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
+  return Math.max(w / 2 / Math.tan(hfov / 2), h / 2 / Math.tan(vfov / 2));
+};
+
+/**
+ * Drives every animated transform (camera fly-in, idle sway, drag tilt).
+ * It's mounted before the model so it runs before drei's <Html> each frame,
+ * which keeps the DOM screen glued to the 3D monitor without lag.
+ */
+function Rig({
+  focused,
+  reducedMotion,
+  drag,
+}: {
+  focused: boolean;
+  reducedMotion: boolean;
+  drag: React.RefObject<DragState>;
+}) {
+  const state = useRef({
+      look: REST_TARGET.clone(),
+      pos: new THREE.Vector3(),
+      target: new THREE.Vector3(),
+      normal: new THREE.Vector3(),
+      quat: new THREE.Quaternion(),
+      scale: new THREE.Vector3(),
+      tilt: new THREE.Vector2(),
+      sway: reducedMotion ? 0 : 1,
+      first: true,
+    model: null as THREE.Object3D | null,
+    screen: null as THREE.Object3D | null,
+  });
+
+  useFrame((three, rawDelta) => {
+    const s = state.current;
+    const delta = Math.min(rawDelta, 0.1);
+    const camera = three.camera as THREE.PerspectiveCamera;
+    const t = three.clock.elapsedTime;
+    s.model ??= three.scene.getObjectByName(MODEL_NAME) ?? null;
+    s.screen ??= three.scene.getObjectByName(SCREEN_NAME) ?? null;
+    const g = s.model;
+    if (!g) return;
+
+    // idle sway + drag tilt
+    const ease = (speed: number) => 1 - Math.exp(-delta * speed);
+    s.sway = THREE.MathUtils.lerp(s.sway, focused || reducedMotion ? 0 : 1, ease(3));
+    const d = drag.current;
+    const tx = focused ? 0 : d.x;
+    const ty = focused ? 0 : d.y;
+    s.tilt.x = THREE.MathUtils.lerp(s.tilt.x, tx, ease(d.active ? 14 : 5));
+    s.tilt.y = THREE.MathUtils.lerp(s.tilt.y, ty, ease(d.active ? 14 : 5));
+    g.rotation.y = REST_YAW + s.tilt.y + Math.sin(t * 0.45) * 0.06 * s.sway;
+    g.rotation.x = s.tilt.x + Math.sin(t * 0.7) * 0.012 * s.sway;
+    g.position.y = MODEL_Y + Math.sin(t * 0.9) * 0.035 * s.sway;
+    g.updateMatrixWorld(true);
+
+    // camera: rest framing, or square-on to the screen when focused
+    if (focused && s.screen) {
+      s.screen.getWorldPosition(s.target);
+      s.screen.getWorldQuaternion(s.quat);
+      s.screen.getWorldScale(s.scale);
+      s.normal.set(0, 0, 1).applyQuaternion(s.quat);
+      const dist =
+        fitDistance(SCREEN.width * s.scale.x, SCREEN.height * s.scale.y, camera) * FOCUS_MARGIN;
+      s.pos.copy(s.target).addScaledVector(s.normal, dist);
+    } else {
+      s.target.copy(REST_TARGET);
+      const dist = fitDistance(REST_FIT.width, REST_FIT.height, camera);
+      s.pos.copy(REST_TARGET).addScaledVector(REST_DIRECTION, dist);
+    }
+
+    const k = s.first || reducedMotion ? 1 : ease(4.5);
+    s.first = false;
+    camera.position.lerp(s.pos, k);
+    s.look.lerp(s.target, k);
+    camera.lookAt(s.look);
+    camera.updateMatrixWorld();
+  });
+
+  return null;
+}
+
+type ScreenProps = Omit<TerminalProps, "width" | "height" | "fontSize">;
+
+function Computer({
+  onReady,
+  terminal,
+}: {
+  onReady: () => void;
+  terminal: ScreenProps;
+}) {
+  const { scene } = useGLTF(MODEL_URL);
+  const size = useThree((st) => st.size);
+
+  useLayoutEffect(() => {
+    const screenMaterial = new THREE.MeshBasicMaterial({ color: "#030806" });
+    scene.traverse((obj) => {
+      if (!(obj as THREE.Mesh).isMesh) return;
+      const mesh = obj as THREE.Mesh;
+      if (mesh.name === "screentext") {
+        mesh.visible = false;
+        return;
+      }
+      const material = mesh.material as THREE.MeshStandardMaterial;
+      if (material.name === "M_screen_brightblue") {
+        mesh.material = screenMaterial;
+        return;
+      }
+      // The source was authored as matte Lambert; drop the metalness so it
+      // doesn't need an environment map to look right.
+      material.metalness = 0;
+      material.roughness = 0.85;
+      mesh.castShadow = true;
+    });
+  }, [scene]);
+
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
+  // Size the DOM terminal so it's ~1:1 with screen pixels when focused
+  // (crisp text). Touch devices use a 16px font (avoids iOS zoom-on-focus)
+  // rendered a bit smaller.
+  const touch = terminal.touch;
+  const fontSize = touch ? 16 : 13;
+  const width = Math.round(
+    THREE.MathUtils.clamp((size.width / FOCUS_MARGIN) * (touch ? 1.55 : 1), 380, 900),
+  );
+  const height = Math.round(width / SCREEN_ASPECT);
+
+  return (
+    <group name={MODEL_NAME} position={[0, MODEL_Y, 0]} rotation={[0, REST_YAW, 0]}>
+      <group scale={MODEL_SCALE} position={[0, 0, -0.013 * MODEL_SCALE]}>
+        <primitive object={scene} />
+        <group
+          name={SCREEN_NAME}
+          position={[SCREEN.center[0], SCREEN.center[1], SCREEN.center[2] + 0.0003]}
+          rotation={[SCREEN.tilt, 0, 0]}
+        >
+          <Html
+            transform
+            distanceFactor={(SCREEN.width * 400) / width}
+            zIndexRange={[20, 0]}
+            style={{ userSelect: "text" }}
+          >
+            <Terminal {...terminal} width={width} height={height} fontSize={fontSize} />
+          </Html>
+        </group>
+      </group>
+      {/* phosphor glow spilling onto the keyboard */}
+      <pointLight
+        position={[0, SCREEN.center[1] * MODEL_SCALE, 1.2]}
+        color="#34d399"
+        intensity={3}
+        distance={3.5}
+        decay={2}
+      />
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------- component -- */
+
+export default function HeroComputer({ onContact }: { onContact: () => void }) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const exitRef = useRef<HTMLDivElement>(null);
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const terminalRootRef = useRef<HTMLDivElement>(null);
+  const controllerRef = useRef<TerminalController>(null);
+  const drag = useRef<DragState>({ active: false, lastX: 0, lastY: 0, x: 0, y: 0 });
+
+  const [focused, setFocused] = useState(false);
+  const [ready, setReady] = useState(false);
+  const inView = useInView(wrapperRef);
+  const touch = useMediaQuery("(pointer: coarse)");
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const { resolvedTheme, setTheme } = useTheme();
+
+  const onReady = useCallback(() => setReady(true), []);
+  const focus = useCallback(() => setFocused(true), []);
+  const blur = useCallback(() => setFocused(false), []);
+  const openContact = useCallback(() => {
+    setFocused(false);
+    onContact();
+  }, [onContact]);
+
+  // Leave focus mode on outside clicks / Escape anywhere.
+  useEffect(() => {
+    if (!focused) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      const inside = [terminalRootRef, exitRef, chipsRef].some((r) => r.current?.contains(target));
+      if (inside) return;
+      setFocused(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFocused(false);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [focused]);
+
+  // Drag anywhere on the canvas (outside the screen) to tilt the computer.
+  const canDrag = !focused && !touch;
+  const dragHandlers = {
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!canDrag || e.button !== 0) return;
+      drag.current.active = true;
+      drag.current.lastX = e.clientX;
+      drag.current.lastY = e.clientY;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      const d = drag.current;
+      if (!d.active) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      d.y = THREE.MathUtils.clamp(d.y + ((e.clientX - d.lastX) / rect.width) * 2.4, -0.7, 0.7);
+      d.x = THREE.MathUtils.clamp(d.x + ((e.clientY - d.lastY) / rect.height) * 1.2, -0.25, 0.3);
+      d.lastX = e.clientX;
+      d.lastY = e.clientY;
+    },
+    onPointerUp: () => {
+      // snap back
+      Object.assign(drag.current, { active: false, x: 0, y: 0 });
+    },
+  };
+
+  const terminal: ScreenProps = {
+    focused,
+    autoBoot: inView && ready,
+    reducedMotion,
+    touch,
+    currentTheme: resolvedTheme,
+    onRequestFocus: focus,
+    onRequestBlur: blur,
+    onContact: openContact,
+    onSetTheme: setTheme,
+    controllerRef,
+    rootRef: terminalRootRef,
+  };
+
+  return (
+    <div className="relative">
+      <div
+        ref={wrapperRef}
+        className={cn(
+          "relative isolate h-[24rem] sm:h-[30rem] lg:h-[34rem] select-none",
+          canDrag && "cursor-grab active:cursor-grabbing",
+        )}
+        {...dragHandlers}
+        onPointerCancel={dragHandlers.onPointerUp}
+      >
+        <Canvas
+          frameloop={inView ? "always" : "never"}
+          dpr={isMobile ? [1, 1.5] : [1, 2]}
+          camera={{ fov: 30, near: 0.1, far: 60, position: [0, 1, 12] }}
+          gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
+          shadows={false}
+          fallback={<HeroComputerPoster />}
+          style={{ touchAction: "pan-y" }}
+          aria-label="Interactive 3D retro computer with a terminal on its screen"
+        >
+          <ambientLight intensity={0.4} />
+          <hemisphereLight args={["#fff8e7", "#2a2620", 0.9]} />
+          <directionalLight position={[4, 6, 5]} intensity={2.6} />
+          <directionalLight position={[-5, 2, -3]} intensity={0.6} color="#7ebae4" />
+          <Rig focused={focused} reducedMotion={reducedMotion} drag={drag} />
+          <Suspense fallback={null}>
+            <Computer onReady={onReady} terminal={terminal} />
+          </Suspense>
+          <ContactShadows
+            position={[0, MODEL_Y - 0.02, 0]}
+            opacity={resolvedTheme === "dark" ? 0.6 : 0.35}
+            scale={8}
+            blur={2.4}
+            far={2}
+            resolution={256}
+          />
+        </Canvas>
+
+        <HeroComputerPoster
+          className={cn(
+            "pointer-events-none transition-opacity duration-300",
+            ready ? "opacity-0" : "opacity-100",
+          )}
+        />
+
+        {focused && (
+          <div ref={exitRef} className="absolute right-2 top-2 z-30">
+            <button
+              type="button"
+              onClick={blur}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 font-mono text-xs text-text-muted shadow-lg backdrop-blur-md transition-colors hover:text-primary"
+              aria-label="Leave the terminal"
+            >
+              <span className="hidden sm:inline">esc</span>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* hint / mobile command chips */}
+      <div className="mt-2 min-h-8 text-center font-mono text-xs text-text-muted">
+        {touch ? (
+          <div
+            ref={chipsRef}
+            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0"
+          >
+            {MOBILE_COMMANDS.map((cmd) => (
+              <button
+                key={cmd}
+                type="button"
+                onClick={() => {
+                  setFocused(true);
+                  controllerRef.current?.run(cmd);
+                }}
+                className="shrink-0 rounded-full border border-emerald-500/40 bg-surface/70 px-3 py-1.5 text-emerald-500 backdrop-blur-sm active:bg-emerald-500/15 dark:text-emerald-400"
+              >
+                <span className="text-text-muted">$ </span>
+                {cmd}
+              </button>
+            ))}
+          </div>
+        ) : focused ? (
+          <p>
+            <span className="text-primary">esc</span> to leave · try <span className="text-primary">ls</span>,{" "}
+            <span className="text-primary">cat about.md</span>, <span className="text-primary">neofetch</span>
+          </p>
+        ) : (
+          <p>
+            <span className="text-primary">▸</span> click the screen to use the terminal · drag to tilt
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}

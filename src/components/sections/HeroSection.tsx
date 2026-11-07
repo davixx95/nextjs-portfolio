@@ -1,24 +1,29 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ContactModal } from "@/components/ui/ContactModal";
-import {
-  Download,
-  Mail,
-  Code2,
-  Linkedin,
-  Github,
-  Sparkles,
-  MapPin,
-  CheckCircle2,
-} from "lucide-react";
+import { HeroComputerPoster } from "@/components/three/HeroComputerPoster";
+import { Download, Mail, Code2, Linkedin, Github, MapPin } from "lucide-react";
+
+// three.js is ~600 KB, so the 3D computer loads client-side in its own chunk.
+// The poster (same footprint) keeps the layout stable until it's ready.
+const HeroComputer = dynamic(() => import("@/components/three/HeroComputer"), {
+  ssr: false,
+  loading: () => (
+    <div className="relative">
+      <div className="relative h-[24rem] sm:h-[30rem] lg:h-[34rem]">
+        <HeroComputerPoster />
+      </div>
+      <div className="mt-2 min-h-8" />
+    </div>
+  ),
+});
 
 export function HeroSection({ coreStack }: { coreStack: string[] }) {
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const yearsExperience = new Date().getFullYear() - 2022;
 
   return (
     <section
@@ -26,57 +31,13 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
       className="relative pt-8 pb-16 md:pt-16 md:pb-12 overflow-hidden"
     >
       {/* Background Ambient Glow & Subtle Grid Overlay */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[40rem] sm:h-[40rem] bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-1/2 lg:left-3/4 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[40rem] sm:h-[40rem] bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#10b98108_1px,transparent_1px),linear-gradient(to_bottom,#10b98108_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left Column: Headshot Frame with Ambient Glow & Badges */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end relative">
-            <div className="relative group">
-              {/* Outer Decorative Ring Glow */}
-              <div className="absolute -inset-1.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-indigo-500 rounded-full blur-lg opacity-40 group-hover:opacity-75 transition duration-500" />
-
-              {/* Headshot Card Container */}
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full p-2 bg-border/90 border border-emerald-500/30 backdrop-blur-md shadow-2xl overflow-hidden flex items-center justify-center">
-                {/* Background Glow inside Container */}
-                <div className="absolute -inset-50 group-hover:-inset-100 transition-[inset] duration-400 bg-gradient-to-b from-emerald-500/10 via-transparent to-background/80 pointer-events-none z-50" />
-
-                <Image
-                  src="/headshot.webp"
-                  alt="Davide Fedele - Front End Developer"
-                  width={320}
-                  height={320}
-                  priority
-                  className="w-full h-full object-cover rounded-full transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-
-              {/* Floating Badge Top Right */}
-              <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-surface/90 border border-emerald-500/40 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md flex items-center gap-1.5 text-xs font-mono text-emerald-400 animate-bounce duration-1000">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="font-semibold">Enterprise Specialist</span>
-              </div>
-
-              {/* Floating Badge Bottom Left */}
-              <div className="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 bg-surface/90 border border-border rounded-xl px-3 py-2 shadow-xl backdrop-blur-md flex items-center gap-2 text-xs font-sans text-text-main">
-                <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-bold text-xs">
-                    {yearsExperience}+ Yrs Experience
-                  </div>
-                  <div className="text-[10px] text-text-muted">
-                    NTT DATA • HCL • Contrader
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Intro, Headline, Bio, CTAs & Socials */}
-          <div className="lg:col-span-7 space-y-6 text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+          {/* Left Column: Intro, Headline, Bio, CTAs & Socials */}
+          <div className="lg:col-span-6 space-y-6 text-left">
             {/* Status & Location Badges */}
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant="status-active" className="py-1 px-3">
@@ -166,6 +127,11 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Right Column: interactive 3D computer */}
+          <div className="lg:col-span-6 lg:-mr-6">
+            <HeroComputer onContact={() => setIsContactOpen(true)} />
           </div>
         </div>
 

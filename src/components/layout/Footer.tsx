@@ -55,6 +55,18 @@ export function Footer() {
             Back to Top ↑
           </a>
         </div>
+        <p className="text-[10px] font-mono text-text-muted/70">
+          3D model:{" "}
+          <a
+            href="https://poly.pizza/m/Bw55oYsbp8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-primary transition-colors"
+          >
+            &ldquo;Computer 90s&rdquo; by Charlie
+          </a>{" "}
+          via Poly Pizza (CC BY)
+        </p>
       </div>
     </footer>
   );
