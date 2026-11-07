@@ -183,9 +183,12 @@ type ScreenProps = Omit<TerminalProps, "width" | "height" | "fontSize">;
 function Computer({
   onReady,
   terminal,
+  portal,
 }: {
   onReady: () => void;
   terminal: ScreenProps;
+  /** Stable DOM container for the <Html> screen (see HeroComputer). */
+  portal: React.RefObject<HTMLDivElement | null>;
 }) {
   const { scene } = useGLTF(MODEL_URL);
   const size = useThree((st) => st.size);
@@ -243,6 +246,7 @@ function Computer({
           rotation={[SCREEN.tilt, 0, 0]}
         >
           <Html
+            portal={portal as React.RefObject<HTMLElement>}
             transform
             distanceFactor={(SCREEN.width * 400) / width}
             zIndexRange={[20, 0]}
@@ -271,6 +275,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
   const exitRef = useRef<HTMLDivElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
   const terminalRootRef = useRef<HTMLDivElement>(null);
+  const htmlPortalRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<TerminalController>(null);
   const drag = useRef<DragState>({ active: false, lastX: 0, lastY: 0, x: 0, y: 0 });
 
@@ -375,7 +380,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
           <directionalLight position={[-5, 2, -3]} intensity={0.6} color="#7ebae4" />
           <Rig focused={focused} reducedMotion={reducedMotion} drag={drag} />
           <Suspense fallback={null}>
-            <Computer onReady={onReady} terminal={terminal} />
+            <Computer onReady={onReady} terminal={terminal} portal={htmlPortalRef} />
           </Suspense>
           <ContactShadows
             position={[0, MODEL_Y - 0.02, 0]}
@@ -386,6 +391,16 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
             resolution={256}
           />
         </Canvas>
+
+        {/*
+          Fixed mount point for the <Html> screen. Without it drei picks
+          `events.connected || gl.domElement.parentNode`, which changes once R3F
+          connects its events after the first render; drei then unmounts and
+          re-creates the screen's React root mid-commit ("Attempted to
+          synchronously unmount a root...") and can leave it empty. It must
+          cover exactly the canvas box, since drei positions from its corner.
+        */}
+        <div ref={htmlPortalRef} className="pointer-events-none absolute inset-0" />
 
         <HeroComputerPoster
           className={cn(
