@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ContactModal } from "@/components/ui/ContactModal";
+import { HERO_COMPUTER_HEIGHT } from "@/components/three/HeroComputerPoster";
 import { Download, Mail, Code2, Linkedin, Github, MapPin } from "lucide-react";
 
 // three.js is ~600 KB, so the 3D computer loads client-side in its own chunk.
@@ -14,8 +15,8 @@ const HeroComputer = dynamic(() => import("@/components/three/HeroComputer"), {
   ssr: false,
   loading: () => (
     <div className="relative">
-      <div className="relative h-[24rem] sm:h-[30rem] lg:h-[34rem]" />
-      <div className="mt-2 min-h-8" />
+      <div className={`relative ${HERO_COMPUTER_HEIGHT}`} />
+      <div className="mt-2 min-h-8 [@media(pointer:coarse)]:hidden" />
     </div>
   ),
 });
@@ -33,11 +34,15 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#10b98108_1px,transparent_1px),linear-gradient(to_bottom,#10b98108_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-          {/* Left Column: Intro, Headline, Bio, CTAs & Socials */}
-          <div className="lg:col-span-6 space-y-6 text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-10 items-center">
+          {/*
+            Left Column: Intro, Headline, Bio, CTAs & Socials.
+            Below lg it's `display: contents`, so its children join the grid and
+            the computer can sit between the headline and the bio (order-*).
+          */}
+          <div className="contents lg:block lg:col-span-6 lg:space-y-6 text-left">
             {/* Status & Location Badges */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="order-1 lg:order-none flex flex-wrap items-center gap-3">
               <Badge variant="status-active" className="py-1 px-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse mr-2" />
                 AVAILABLE FOR NEW PROJECTS & ROLES
@@ -49,14 +54,14 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
             </div>
 
             {/* Main Greeting & Name Heading */}
-            <div className="space-y-3">
+            <div className="order-2 lg:order-none space-y-3">
               <span className="text-primary font-mono text-sm sm:text-base font-medium tracking-wide">
                 Hi, my name is
               </span>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-text-main font-sans leading-[1.1]">
                 Davide Fedele
               </h1>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-text-muted font-sans leading-snug">
+              <h2 className="text-[1.375rem] sm:text-3xl lg:text-4xl font-bold tracking-tight text-text-muted font-sans leading-snug">
                 I build clean high-performance{" "}
                 <div className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
                   web applications
@@ -65,7 +70,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
             </div>
 
             {/* Impactful & Likable Bio */}
-            <p className="text-base sm:text-lg text-text-muted font-sans leading-relaxed max-w-2xl">
+            <p className="order-4 lg:order-none text-base sm:text-lg text-text-muted font-sans leading-relaxed max-w-2xl">
               <strong className="text-text-main font-semibold">React</strong>{" "}
               ecosystem expert. I build resilient, high-performance web
               applications for enterprise clients, blending deep technical
@@ -73,12 +78,12 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
             </p>
 
             {/* Action Buttons & Social Links */}
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+            <div className="order-5 lg:order-none lg:pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
               <a href="/resume.pdf" download="Davide_Fedele_Resume.pdf">
                 <Button
                   variant="primary"
                   size="lg"
-                  className="shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all"
+                  className="px-4 sm:px-6 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all"
                   title="Download CV"
                 >
                   <Download className="w-4 h-4" />
@@ -89,6 +94,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
               <Button
                 variant="secondary"
                 size="lg"
+                className="px-4 sm:px-6"
                 onClick={() => setIsContactOpen(true)}
                 title="Get in touch"
               >
@@ -128,7 +134,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
           </div>
 
           {/* Right Column: interactive 3D computer */}
-          <div className="lg:col-span-6 lg:-mr-6">
+          <div className="order-3 lg:order-none lg:col-span-6 lg:-mr-6">
             <HeroComputer onContact={() => setIsContactOpen(true)} />
           </div>
         </div>

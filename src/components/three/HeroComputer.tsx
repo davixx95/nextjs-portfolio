@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Terminal, TerminalController, TerminalProps } from "@/components/terminal/Terminal";
-import { HeroComputerPoster } from "./HeroComputerPoster";
+import { HERO_COMPUTER_HEIGHT, HeroComputerPoster } from "./HeroComputerPoster";
 
 /* ------------------------------------------------------------- constants -- */
 
@@ -51,6 +51,9 @@ const FOCUS_MARGIN = 1.2;
 
 const MODEL_NAME = "hero-computer";
 const SCREEN_NAME = "hero-computer-screen";
+
+/** On touch devices the command chips overlay the bottom of the canvas. */
+const CHIPS_INSET_PX = 44;
 
 const MOBILE_COMMANDS = ["neofetch", "ls", "cat about.md", "ls experience", "help", "clear"];
 
@@ -137,10 +140,13 @@ function Rig({
   focused,
   reducedMotion,
   drag,
+  insetBottom,
 }: {
   focused: boolean;
   reducedMotion: boolean;
   drag: React.RefObject<DragState>;
+  /** CSS px at the bottom of the canvas covered by UI (the touch chips). */
+  insetBottom: number;
 }) {
   const state = useRef({
       look: REST_TARGET.clone(),
@@ -150,6 +156,7 @@ function Rig({
       quat: new THREE.Quaternion(),
       scale: new THREE.Vector3(),
       tilt: new THREE.Vector2(),
+      up: new THREE.Vector3(),
       sway: reducedMotion ? 0 : 1,
       first: true,
     model: null as THREE.Object3D | null,
@@ -185,9 +192,21 @@ function Rig({
       s.screen.getWorldQuaternion(s.quat);
       s.screen.getWorldScale(s.scale);
       s.normal.set(0, 0, 1).applyQuaternion(s.quat);
-      const dist =
-        fitDistance(SCREEN.width * s.scale.x, SCREEN.height * s.scale.y, camera) * FOCUS_MARGIN;
+      // Fit the screen into the canvas area above `insetBottom`, then shift the
+      // view so the screen is centred in that area rather than the full canvas.
+      const H = three.size.height;
+      const free = Math.max(H - insetBottom, 1) / H;
+      const w = SCREEN.width * s.scale.x;
+      const h = SCREEN.height * s.scale.y;
+      const dist = Math.max(fitDistance(w, 0, camera), fitDistance(0, h / free, camera)) * FOCUS_MARGIN;
       s.pos.copy(s.target).addScaledVector(s.normal, dist);
+      if (insetBottom > 0) {
+        const worldPerPx = (2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / H;
+        s.up.set(0, 1, 0).addScaledVector(s.normal, -s.normal.y).normalize();
+        const shift = (insetBottom / 2) * worldPerPx;
+        s.pos.addScaledVector(s.up, -shift);
+        s.target.addScaledVector(s.up, -shift);
+      }
     } else {
       s.target.copy(REST_TARGET);
       const dist = fitDistance(REST_FIT.width, REST_FIT.height, camera);
@@ -211,9 +230,11 @@ function Computer({
   onReady,
   terminal,
   portal,
+  insetBottom,
 }: {
   onReady: () => void;
   terminal: ScreenProps;
+  insetBottom: number;
   /** Stable DOM container for the <Html> screen (see HeroComputer). */
   portal: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -260,7 +281,8 @@ function Computer({
   // use a 16px font (avoids iOS zoom-on-focus) rendered a bit smaller.
   const touch = terminal.touch;
   const fontSize = touch ? 16 : 13;
-  const focusedScreenPx = Math.min(size.width, size.height * SCREEN_ASPECT) / FOCUS_MARGIN;
+  const focusedScreenPx =
+    Math.min(size.width, (size.height - insetBottom) * SCREEN_ASPECT) / FOCUS_MARGIN;
   const width = Math.round(
     THREE.MathUtils.clamp(focusedScreenPx * (touch ? 1.55 : 1), 380, 900),
   );
@@ -369,6 +391,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
     },
   };
 
+  const insetBottom = touch ? CHIPS_INSET_PX : 0;
+
   const terminal: ScreenProps = {
     focused,
     autoBoot: inView && ready,
@@ -388,8 +412,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
       <div
         ref={wrapperRef}
         className={cn(
-          "hero-computer-fade relative isolate h-[24rem] sm:h-[30rem] lg:h-[34rem] select-none",
-          focused && "is-focused",
+          "relative isolate select-none",
+          HERO_COMPUTER_HEIGHT,
           canDrag && "cursor-grab active:cursor-grabbing",
         )}
         {...dragHandlers}
@@ -397,11 +421,15 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
       >
         {webgl ? (
           <WebGLBoundary fallback={<HeroComputerPoster />}>
-            {/* canvas + screen fade in together once the first frame is drawn */}
+            {/*
+              Canvas + screen fade in together once the first frame is drawn;
+              `hero-computer-fade` also masks out the bottom edge at rest.
+            */}
             <div
               className={cn(
-                "absolute inset-0 transition-opacity duration-500 motion-reduce:transition-none",
+                "hero-computer-fade absolute inset-0",
                 ready ? "opacity-100" : "opacity-0",
+                focused && "is-focused",
               )}
             >
               <Canvas
@@ -417,9 +445,19 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
                 <hemisphereLight args={["#fff8e7", "#2a2620", 0.9]} />
                 <directionalLight position={[4, 6, 5]} intensity={2.6} />
                 <directionalLight position={[-5, 2, -3]} intensity={0.6} color="#7ebae4" />
-                <Rig focused={focused} reducedMotion={reducedMotion} drag={drag} />
+                <Rig
+                  focused={focused}
+                  reducedMotion={reducedMotion}
+                  drag={drag}
+                  insetBottom={insetBottom}
+                />
                 <Suspense fallback={null}>
-                  <Computer onReady={onReady} terminal={terminal} portal={htmlPortalRef} />
+                  <Computer
+                    onReady={onReady}
+                    terminal={terminal}
+                    portal={htmlPortalRef}
+                    insetBottom={insetBottom}
+                  />
                 </Suspense>
                 <ContactShadows
                   position={[0, MODEL_Y - 0.02, 0]}
@@ -446,6 +484,30 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
           <HeroComputerPoster />
         )}
 
+        {/* touch: command chips over the (faded) bottom of the canvas */}
+        {touch && (
+          <div
+            ref={chipsRef}
+            className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-2 overflow-x-auto px-1 py-1.5 font-mono text-xs [scrollbar-width:none] sm:justify-center"
+            style={{ height: CHIPS_INSET_PX }}
+          >
+            {MOBILE_COMMANDS.map((cmd) => (
+              <button
+                key={cmd}
+                type="button"
+                onClick={() => {
+                  setFocused(true);
+                  controllerRef.current?.run(cmd);
+                }}
+                className="shrink-0 rounded-full border border-emerald-500/40 bg-surface/85 px-3 py-1.5 text-emerald-600 shadow-sm backdrop-blur-sm active:bg-emerald-500/15 dark:text-emerald-400"
+              >
+                <span className="text-text-muted">$ </span>
+                {cmd}
+              </button>
+            ))}
+          </div>
+        )}
+
         {focused && (
           <div ref={exitRef} className="absolute right-2 top-2 z-30">
             <button
@@ -461,39 +523,21 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
         )}
       </div>
 
-      {/* hint / mobile command chips */}
-      <div className="mt-2 min-h-8 text-center font-mono text-xs text-text-muted">
-        {touch ? (
-          <div
-            ref={chipsRef}
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0"
-          >
-            {MOBILE_COMMANDS.map((cmd) => (
-              <button
-                key={cmd}
-                type="button"
-                onClick={() => {
-                  setFocused(true);
-                  controllerRef.current?.run(cmd);
-                }}
-                className="shrink-0 rounded-full border border-emerald-500/40 bg-surface/70 px-3 py-1.5 text-emerald-500 backdrop-blur-sm active:bg-emerald-500/15 dark:text-emerald-400"
-              >
-                <span className="text-text-muted">$ </span>
-                {cmd}
-              </button>
-            ))}
-          </div>
-        ) : focused ? (
-          <p>
-            <span className="text-primary">esc</span> to leave · try <span className="text-primary">ls</span>,{" "}
-            <span className="text-primary">cat about.md</span>, <span className="text-primary">neofetch</span>
-          </p>
-        ) : (
-          <p>
-            <span className="text-primary">▸</span> click the screen to use the terminal · drag to tilt
-          </p>
-        )}
-      </div>
+      {/* desktop hint */}
+      {!touch && (
+        <div className="mt-2 min-h-8 text-center font-mono text-xs text-text-muted">
+          {focused ? (
+            <p>
+              <span className="text-primary">esc</span> to leave · try <span className="text-primary">ls</span>,{" "}
+              <span className="text-primary">cat about.md</span>, <span className="text-primary">neofetch</span>
+            </p>
+          ) : (
+            <p>
+              <span className="text-primary">▸</span> click the screen to use the terminal · drag to tilt
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

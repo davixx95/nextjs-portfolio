@@ -1,6 +1,15 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+/**
+ * Height of the 3D computer's canvas, shared by the loading placeholder so the
+ * layout never shifts. On phones the computer sits above the bio, so its
+ * height is whatever is left of the viewport after the hero text and CTAs
+ * (`100svh - 30.5rem`), clamped to a usable range.
+ */
+export const HERO_COMPUTER_HEIGHT =
+  "h-[clamp(12rem,calc(100svh-30.5rem),20rem)] sm:h-[22rem] lg:h-[34rem]";
+
 /** Flat 2D stand-in for the 3D computer, shown only when WebGL isn't available. */
 export function HeroComputerPoster({ className }: { className?: string }) {
   return (
