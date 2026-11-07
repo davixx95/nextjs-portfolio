@@ -33,11 +33,17 @@ const SCREEN = {
 };
 const SCREEN_ASPECT = SCREEN.width / SCREEN.height;
 
-/** World-space box the resting camera keeps in frame. */
-const REST_FIT = { width: 3.7, height: 2.7 };
-const REST_TARGET = new THREE.Vector3(0, 0.05, 0);
-const REST_DIRECTION = new THREE.Vector3(0.12, 0.17, 1).normalize();
-const REST_YAW = -0.32; // turn the computer slightly towards the page text
+/**
+ * Resting camera: a "bust shot" of the monitor + top of the case, so the
+ * screen fills ~47-50% of the canvas width and stays legible before the first
+ * click. The keyboard and mouse sit below the frame and are faded out by a CSS
+ * mask on the wrapper (see `.hero-computer-fade` in globals.css). The fit box
+ * includes the idle sway range.
+ */
+const REST_FIT = { width: 2.25, height: 2.3 };
+const REST_TARGET = new THREE.Vector3(0.05, 0.2, 0.03);
+const REST_DIRECTION = new THREE.Vector3(0.08, 0.14, 1).normalize();
+const REST_YAW = -0.2; // turn the computer slightly towards the page text
 const MODEL_Y = -1.05;
 
 /** How much of the canvas the screen fills when focused (1 = edge to edge). */
@@ -185,6 +191,11 @@ function Computer({
   const size = useThree((st) => st.size);
 
   useLayoutEffect(() => {
+    // The speakers would only end up cropped by the tight framing. In the GLB
+    // they're a Group (GLTFLoader splits multi-primitive meshes), so remove the
+    // node itself; optional chaining keeps StrictMode's double-run safe.
+    scene.getObjectByName("speakers")?.removeFromParent();
+
     const screenMaterial = new THREE.MeshBasicMaterial({ color: "#030806" });
     scene.traverse((obj) => {
       if (!(obj as THREE.Mesh).isMesh) return;
@@ -211,12 +222,14 @@ function Computer({
   }, [onReady]);
 
   // Size the DOM terminal so it's ~1:1 with screen pixels when focused
-  // (crisp text). Touch devices use a 16px font (avoids iOS zoom-on-focus)
-  // rendered a bit smaller.
+  // (crisp text). Focus fits the screen by width or by height, whichever is
+  // tighter, so wide canvases don't end up with downscaled text. Touch devices
+  // use a 16px font (avoids iOS zoom-on-focus) rendered a bit smaller.
   const touch = terminal.touch;
   const fontSize = touch ? 16 : 13;
+  const focusedScreenPx = Math.min(size.width, size.height * SCREEN_ASPECT) / FOCUS_MARGIN;
   const width = Math.round(
-    THREE.MathUtils.clamp((size.width / FOCUS_MARGIN) * (touch ? 1.55 : 1), 380, 900),
+    THREE.MathUtils.clamp(focusedScreenPx * (touch ? 1.55 : 1), 380, 900),
   );
   const height = Math.round(width / SCREEN_ASPECT);
 
@@ -339,7 +352,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
       <div
         ref={wrapperRef}
         className={cn(
-          "relative isolate h-[24rem] sm:h-[30rem] lg:h-[34rem] select-none",
+          "hero-computer-fade relative isolate h-[24rem] sm:h-[30rem] lg:h-[34rem] select-none",
+          focused && "is-focused",
           canDrag && "cursor-grab active:cursor-grabbing",
         )}
         {...dragHandlers}
