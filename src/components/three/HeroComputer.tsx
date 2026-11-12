@@ -9,8 +9,8 @@ import React, {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Html, useGLTF } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { ContactShadows, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useTheme } from "next-themes";
 import { X } from "lucide-react";
@@ -30,9 +30,7 @@ const MODEL_PIVOT_Z = 0.2;
 
 /**
  * The CRT, in model units (read from the GLB's `screen` and `bezel` meshes).
- * The DOM screen sits on the plane of the glass's edge; the glass is set
- * deep into the bezel, so `RIM` (the bezel's front opening) clips it when the
- * computer is turned (see `clipToRim`).
+ * The DOM screen is the glass's bounding box, on the plane of its edge.
  */
 const SCREEN = {
   center: [-0.348, 0.096, 1.061] as const,
@@ -41,7 +39,55 @@ const SCREEN = {
   height: 1.02,
 };
 const SCREEN_ASPECT = SCREEN.width / SCREEN.height;
+/**
+ * The glass's outline (its edge vertices, clockwise from the top middle). It's
+ * barrel-shaped, so the DOM screen is clipped to it; a plain rectangle covers
+ * the bezel's top lip and leaves a gap at the bottom, which reads as the
+ * screen sitting too high.
+ */
+const GLASS_OUTLINE: [number, number][] = [
+  [-0.3479, 0.6051], [-0.0126, 0.5938], [0.314, 0.5608], [0.3537, 0.5439],
+  [0.3715, 0.5062], [0.4136, 0.3151], [0.4222, 0.0959], [0.4136, -0.1234],
+  [0.3715, -0.3145], [0.3537, -0.3521], [0.314, -0.3691], [-0.0126, -0.402],
+  [-0.3479, -0.4134], [-0.6832, -0.402], [-1.0097, -0.3691], [-1.0494, -0.3521],
+  [-1.0673, -0.3145], [-1.1093, -0.1234], [-1.1179, 0.0959], [-1.1093, 0.3151],
+  [-1.0673, 0.5062], [-1.0494, 0.5439], [-1.0097, 0.5608], [-0.6832, 0.5938],
+];
+/**
+ * The bezel's front opening. The glass is set deep behind it, so when the
+ * computer is turned this hides part of the glass (see the clip in `Rig`).
+ */
 const RIM = { left: -1.2, right: 0.504, top: 0.676, bottom: -0.486, z: 1.258 };
+
+/** Clips a polygon to an axis-aligned rectangle (Sutherland–Hodgman). */
+function clipToRect(
+  poly: [number, number][],
+  r: { left: number; right: number; bottom: number; top: number },
+) {
+  const edges: [(p: [number, number]) => boolean, (a: [number, number], b: [number, number]) => [number, number]][] = [
+    [(p) => p[0] >= r.left, (a, b) => [r.left, a[1] + ((b[1] - a[1]) * (r.left - a[0])) / (b[0] - a[0])]],
+    [(p) => p[0] <= r.right, (a, b) => [r.right, a[1] + ((b[1] - a[1]) * (r.right - a[0])) / (b[0] - a[0])]],
+    [(p) => p[1] >= r.bottom, (a, b) => [a[0] + ((b[0] - a[0]) * (r.bottom - a[1])) / (b[1] - a[1]), r.bottom]],
+    [(p) => p[1] <= r.top, (a, b) => [a[0] + ((b[0] - a[0]) * (r.top - a[1])) / (b[1] - a[1]), r.top]],
+  ];
+  let out = poly;
+  for (const [inside, cross] of edges) {
+    const input = out;
+    out = [];
+    for (let i = 0; i < input.length; i++) {
+      const a = input[(i + input.length - 1) % input.length];
+      const b = input[i];
+      if (inside(b)) {
+        if (!inside(a)) out.push(cross(a, b));
+        out.push(b);
+      } else if (inside(a)) {
+        out.push(cross(a, b));
+      }
+    }
+    if (!out.length) break;
+  }
+  return out;
+}
 
 /**
  * The quick-command keys fill the blank bezel right of the screen (model
@@ -56,29 +102,114 @@ const QUICK_KEYS: { label: string; cmd: string }[] = [
 ];
 
 /**
- * Resting camera, seen slightly from above. The fit box includes the idle
- * sway range. Wide canvases show the whole terminal, keyboard included;
- * phones frame just the monitor so the screen and the keys stay legible.
+ * Resting camera, seen slightly from above. Its target and distance are
+ * solved from the model's actual vertices across the whole idle sway (see
+ * `fitRest`), so the terminal is centred and never cut off at any canvas
+ * shape. `REST_WINDOW` is the part of the canvas it must fit in, in NDC
+ * (-1..1); the bottom is kept clear of the CSS fade.
  */
-const REST = {
-  wide: {
-    fit: { width: 3.9, height: 3.0 },
-    target: new THREE.Vector3(0.0, -0.05, 0.45),
-  },
-  compact: {
-    fit: { width: 3.2, height: 2.1 },
-    target: new THREE.Vector3(-0.05, -0.2, 0.7),
-  },
-};
+const REST_WINDOW = { left: -0.94, right: 0.94, bottom: -0.8, top: 0.94 };
 const REST_DIRECTION = new THREE.Vector3(0.06, 0.32, 1).normalize();
 const REST_YAW = -0.2; // turn the computer slightly towards the page text
 const MODEL_Y = -1.05;
+/** Idle sway amplitudes (also used by the fit). */
+const SWAY = { yaw: 0.06, pitch: 0.012, bob: 0.035 };
+
+/**
+ * Solves the resting camera target and distance so that `points` (world
+ * space, already spread over the sway range) fill `REST_WINDOW`, centred.
+ * Iterates because perspective makes the fit slightly non-linear.
+ */
+function fitRest(points: THREE.Vector3[], camera: THREE.PerspectiveCamera, out: THREE.Vector3) {
+  const f = REST_DIRECTION.clone().negate();
+  const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize();
+  const u = new THREE.Vector3().crossVectors(r, f);
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+  const tanH = tanV * camera.aspect;
+  const win = REST_WINDOW;
+  const box = new THREE.Box3().setFromPoints(points);
+  box.getCenter(out);
+  let dist = box.getSize(new THREE.Vector3()).length() * 2;
+  const eye = new THREE.Vector3();
+  const v = new THREE.Vector3();
+  for (let i = 0; i < 24; i++) {
+    eye.copy(out).addScaledVector(REST_DIRECTION, dist);
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const p of points) {
+      v.subVectors(p, eye);
+      const z = v.dot(f);
+      const x = v.dot(r) / z / tanH;
+      const y = v.dot(u) / z / tanV;
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    // shift so the model's centre lands on the window's centre...
+    const dx = (minX + maxX) / 2 - (win.left + win.right) / 2;
+    const dy = (minY + maxY) / 2 - (win.bottom + win.top) / 2;
+    out.addScaledVector(r, dx * tanH * dist).addScaledVector(u, dy * tanV * dist);
+    // ...and move in/out so its larger extent just fills the window
+    const s = Math.max((maxX - minX) / (win.right - win.left), (maxY - minY) / (win.top - win.bottom));
+    dist *= s;
+  }
+  return dist;
+}
+
+/** Every mesh vertex of the model, in the model group's own (unrotated) space. */
+function collectHull(model: THREE.Object3D) {
+  model.updateMatrixWorld(true);
+  const toModel = model.matrixWorld.clone().invert();
+  const points: THREE.Vector3[] = [];
+  model.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    const pos = mesh.isMesh ? mesh.geometry.getAttribute("position") : null;
+    if (!pos) return;
+    const m = mesh.matrixWorld.clone().premultiply(toModel);
+    for (let i = 0; i < pos.count; i++) {
+      points.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(m));
+    }
+  });
+  return points;
+}
+
+/** The hull in world space at both ends of the idle yaw and bob. */
+function swayedPoints(hull: THREE.Vector3[]) {
+  const out: THREE.Vector3[] = [];
+  const m = new THREE.Matrix4();
+  for (const yaw of [REST_YAW - SWAY.yaw, REST_YAW + SWAY.yaw]) {
+    for (const bob of [-SWAY.bob, SWAY.bob]) {
+      m.makeRotationY(yaw).setPosition(0, MODEL_Y + bob, 0);
+      for (const p of hull) out.push(p.clone().applyMatrix4(m));
+    }
+  }
+  return out;
+}
 
 /** How much of the canvas the screen fills when focused (1 = edge to edge). */
 const FOCUS_MARGIN = 1.2;
 
 const MODEL_NAME = "hero-computer";
 const SCREEN_NAME = "hero-computer-screen";
+const KEYS_NAME = "hero-computer-keys";
+
+type Point = [number, number];
+
+/**
+ * A CSS `matrix3d` that maps a `w`×`h` element (transform-origin at its top
+ * left) exactly onto the quad `p` (top-left, top-right, bottom-right,
+ * bottom-left, in px). It's a projective (homography) transform, so the
+ * element gets the same perspective as the 3D surface it's pinned to.
+ */
+function quadToMatrix3d(w: number, h: number, [p0, p1, p2, p3]: Point[]) {
+  const dx1 = p1[0] - p2[0], dx2 = p3[0] - p2[0], dx3 = p0[0] - p1[0] + p2[0] - p3[0];
+  const dy1 = p1[1] - p2[1], dy2 = p3[1] - p2[1], dy3 = p0[1] - p1[1] + p2[1] - p3[1];
+  const det = dx1 * dy2 - dx2 * dy1;
+  const g = (dx3 * dy2 - dx2 * dy3) / det;
+  const k = (dx1 * dy3 - dx3 * dy1) / det;
+  const a = (p1[0] - p0[0] + g * p1[0]) / w, b = (p3[0] - p0[0] + k * p3[0]) / h;
+  const d = (p1[1] - p0[1] + g * p1[1]) / w, e = (p3[1] - p0[1] + k * p3[1]) / h;
+  const m = [a, d, 0, g / w, b, e, 0, k / h, 0, 0, 1, 0, p0[0], p0[1], 0, 1];
+  return `matrix3d(${m.map((v) => +v.toFixed(9)).join(",")})`;
+}
 
 /**
  * Touch devices, focused: the quick keys are out of frame, so command chips
@@ -131,6 +262,21 @@ function useMediaQuery(query: string) {
   );
 }
 
+function useElementSize(ref: React.RefObject<HTMLElement | null>) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize((s) => (s.width === width && s.height === height ? s : { width, height }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
 function useInView(ref: React.RefObject<HTMLElement | null>) {
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -164,31 +310,40 @@ const fitDistance = (w: number, h: number, camera: THREE.PerspectiveCamera) => {
 
 /**
  * Drives every animated transform (camera fly-in, idle sway, drag tilt).
- * It's mounted before the model so it runs before drei's <Html> each frame,
- * which keeps the DOM screen glued to the 3D monitor without lag.
+ * It's mounted before the model, and pins the DOM layers after moving the
+ * camera in the same frame, which keeps them glued to the 3D monitor.
  */
 function Rig({
   focused,
   reducedMotion,
   drag,
   insetBottom,
-  compact,
   screenEl,
+  screenHost,
+  keysHost,
 }: {
   focused: boolean;
   reducedMotion: boolean;
   drag: React.RefObject<DragState>;
   /** CSS px at the bottom of the canvas covered by UI (the touch chips). */
   insetBottom: number;
-  /** Phone-sized canvas: use the tighter resting framing. */
-  compact: boolean;
-  /** The DOM screen, clipped to the bezel's opening every frame. */
+  /** The DOM screen, clipped to the visible glass every frame. */
   screenEl: React.RefObject<HTMLDivElement | null>;
+  /** DOM layers pinned onto the screen and the keys panel every frame. */
+  screenHost: React.RefObject<HTMLDivElement | null>;
+  keysHost: React.RefObject<HTMLDivElement | null>;
 }) {
   const state = useRef({
-      look: REST.wide.target.clone(),
+      keys: null as THREE.Object3D | null,
+      corner: new THREE.Vector3(),
+      look: new THREE.Vector3(),
       eye: new THREE.Vector3(),
       clip: "",
+      /** model vertices in the model group's own space, for the rest fit */
+      hull: null as THREE.Vector3[] | null,
+      restKey: "",
+      restTarget: new THREE.Vector3(),
+      restDist: 10,
       pos: new THREE.Vector3(),
       target: new THREE.Vector3(),
       normal: new THREE.Vector3(),
@@ -209,8 +364,19 @@ function Rig({
     const t = three.clock.elapsedTime;
     s.model ??= three.scene.getObjectByName(MODEL_NAME) ?? null;
     s.screen ??= three.scene.getObjectByName(SCREEN_NAME) ?? null;
+    s.keys ??= three.scene.getObjectByName(KEYS_NAME) ?? null;
     const g = s.model;
     if (!g) return;
+
+    // Re-solve the resting framing whenever the canvas changes shape.
+    const restKey = `${three.size.width}x${three.size.height}`;
+    if (restKey !== s.restKey) {
+      s.hull ??= collectHull(g);
+      if (s.hull.length) {
+        s.restDist = fitRest(swayedPoints(s.hull), camera, s.restTarget);
+        s.restKey = restKey;
+      }
+    }
 
     // idle sway + drag tilt
     const ease = (speed: number) => 1 - Math.exp(-delta * speed);
@@ -220,9 +386,9 @@ function Rig({
     const ty = focused ? 0 : d.y;
     s.tilt.x = THREE.MathUtils.lerp(s.tilt.x, tx, ease(d.active ? 14 : 5));
     s.tilt.y = THREE.MathUtils.lerp(s.tilt.y, ty, ease(d.active ? 14 : 5));
-    g.rotation.y = REST_YAW + s.tilt.y + Math.sin(t * 0.45) * 0.06 * s.sway;
-    g.rotation.x = s.tilt.x + Math.sin(t * 0.7) * 0.012 * s.sway;
-    g.position.y = MODEL_Y + Math.sin(t * 0.9) * 0.035 * s.sway;
+    g.rotation.y = REST_YAW + s.tilt.y + Math.sin(t * 0.45) * SWAY.yaw * s.sway;
+    g.rotation.x = s.tilt.x + Math.sin(t * 0.7) * SWAY.pitch * s.sway;
+    g.position.y = MODEL_Y + Math.sin(t * 0.9) * SWAY.bob * s.sway;
     g.updateMatrixWorld(true);
 
     // camera: rest framing, or square-on to the screen when focused
@@ -247,10 +413,8 @@ function Rig({
         s.target.addScaledVector(s.up, -shift);
       }
     } else {
-      const rest = compact ? REST.compact : REST.wide;
-      s.target.copy(rest.target);
-      const dist = fitDistance(rest.fit.width, rest.fit.height, camera);
-      s.pos.copy(rest.target).addScaledVector(REST_DIRECTION, dist);
+      s.target.copy(s.restTarget);
+      s.pos.copy(s.restTarget).addScaledVector(REST_DIRECTION, s.restDist);
     }
 
     const k = s.first || reducedMotion ? 1 : ease(4.5);
@@ -260,24 +424,47 @@ function Rig({
     camera.lookAt(s.look);
     camera.updateMatrixWorld();
 
-    // The glass sits deep inside the bezel, but the DOM screen is drawn over
-    // the canvas, so the 3D bezel can't hide it. Instead, project the bezel's
-    // front opening onto the screen's plane (from the camera) and clip the DOM
-    // screen to it: turning the computer then hides the far edge.
+    // Pin the DOM layers onto their 3D surfaces: project each surface's corners
+    // with the same camera that draws the canvas and map the element onto that
+    // quad. Everything stays in canvas px, so it lines up to the pixel (drei's
+    // <Html transform> builds a CSS 3D camera in scene units instead, which
+    // the browser paints several px off at this scale).
+    const pin = (host: HTMLElement | null, anchor: THREE.Object3D | null, w: number, h: number) => {
+      if (!host || !anchor) return;
+      const pw = parseFloat(host.style.width);
+      const ph = parseFloat(host.style.height);
+      if (!pw || !ph) return;
+      const quad = ([[-1, 1], [1, 1], [1, -1], [-1, -1]] as const).map(([sx, sy]): Point => {
+        s.corner.set((sx * w) / 2, (sy * h) / 2, 0);
+        anchor.localToWorld(s.corner).project(camera);
+        return [((s.corner.x + 1) / 2) * three.size.width, ((1 - s.corner.y) / 2) * three.size.height];
+      });
+      host.style.setProperty("transform", quadToMatrix3d(pw, ph, quad));
+    };
+    pin(screenHost.current, s.screen, SCREEN.width, SCREEN.height);
+    pin(keysHost.current, s.keys, KEYS_PANEL.width, KEYS_PANEL.height);
+
+    // The DOM screen is drawn over the canvas, so the 3D bezel can't hide it.
+    // Clip it to what's actually visible of the glass instead: its barrel
+    // outline, minus whatever the bezel's front opening hides from the camera.
+    // The opening is parallel to the glass, so seen from the camera it lands
+    // on the glass's plane as a plain rectangle.
     const el = screenEl.current;
     if (el && s.screen) {
       s.eye.copy(camera.position);
       s.screen.worldToLocal(s.eye);
       const depth = RIM.z - SCREEN.center[2];
       const k = s.eye.z / (s.eye.z - depth);
-      const pt = (x: number, y: number) => {
-        const lx = s.eye.x + (x - SCREEN.center[0] - s.eye.x) * k;
-        const ly = s.eye.y + (y - SCREEN.center[1] - s.eye.y) * k;
-        const u = (lx / SCREEN.width + 0.5) * 100;
-        const v = (0.5 - ly / SCREEN.height) * 100;
-        return `${u.toFixed(2)}% ${v.toFixed(2)}%`;
-      };
-      const clip = `polygon(${pt(RIM.left, RIM.top)}, ${pt(RIM.right, RIM.top)}, ${pt(RIM.right, RIM.bottom)}, ${pt(RIM.left, RIM.bottom)})`;
+      const onGlass = (x: number, y: number): [number, number] => [
+        s.eye.x + (x - SCREEN.center[0] - s.eye.x) * k + SCREEN.center[0],
+        s.eye.y + (y - SCREEN.center[1] - s.eye.y) * k + SCREEN.center[1],
+      ];
+      const [left, top] = onGlass(RIM.left, RIM.top);
+      const [right, bottom] = onGlass(RIM.right, RIM.bottom);
+      const visible = clipToRect(GLASS_OUTLINE, { left, right, bottom, top });
+      const pct = ([x, y]: [number, number]) =>
+        `${(((x - SCREEN.center[0]) / SCREEN.width + 0.5) * 100).toFixed(2)}% ${((0.5 - (y - SCREEN.center[1]) / SCREEN.height) * 100).toFixed(2)}%`;
+      const clip = visible.length ? `polygon(${visible.map(pct).join(", ")})` : "inset(50%)";
       if (clip !== s.clip) {
         el.style.setProperty("clip-path", clip);
         s.clip = clip;
@@ -332,24 +519,8 @@ function QuickKeys({
   );
 }
 
-function Computer({
-  onReady,
-  terminal,
-  portal,
-  insetBottom,
-  keysRef,
-  onQuickKey,
-}: {
-  onReady: () => void;
-  terminal: ScreenProps;
-  insetBottom: number;
-  /** Stable DOM container for the <Html> screen (see HeroComputer). */
-  portal: React.RefObject<HTMLDivElement | null>;
-  keysRef: React.RefObject<HTMLDivElement | null>;
-  onQuickKey: (cmd: string) => void;
-}) {
+function Computer({ onReady }: { onReady: () => void }) {
   const { scene } = useGLTF(MODEL_URL);
-  const size = useThree((st) => st.size);
 
   useLayoutEffect(() => {
     const screenMaterial = new THREE.MeshBasicMaterial({ color: "#030806" });
@@ -366,25 +537,13 @@ function Computer({
     });
   }, [scene]);
 
-  // Report ready only once a frame with the model (and the <Html> screen) has
-  // actually been rendered, so the canvas fade-in never reveals an empty scene.
+  // Report ready only once a frame with the model (and the pinned DOM layers)
+  // has actually been rendered, so the canvas fade-in never reveals an empty
+  // scene.
   const framesRendered = useRef(0);
   useFrame(() => {
     if (framesRendered.current++ === 1) onReady();
   });
-
-  // Size the DOM terminal so it's ~1:1 with screen pixels when focused
-  // (crisp text). Focus fits the screen by width or by height, whichever is
-  // tighter, so wide canvases don't end up with downscaled text. Touch devices
-  // use a 16px font (avoids iOS zoom-on-focus) rendered a bit smaller.
-  const touch = terminal.touch;
-  const fontSize = touch ? 16 : 13;
-  const focusedScreenPx =
-    Math.min(size.width, (size.height - insetBottom) * SCREEN_ASPECT) / FOCUS_MARGIN;
-  const width = Math.round(
-    THREE.MathUtils.clamp(focusedScreenPx * (touch ? 1.55 : 1), 380, 900),
-  );
-  const height = Math.round(width / SCREEN_ASPECT);
 
   return (
     <group name={MODEL_NAME} position={[0, MODEL_Y, 0]} rotation={[0, REST_YAW, 0]}>
@@ -393,44 +552,16 @@ function Computer({
         position={[0, -MODEL_BOTTOM * MODEL_SCALE, -MODEL_PIVOT_Z * MODEL_SCALE]}
       >
         <primitive object={scene} />
+        {/* anchors the DOM terminal and quick keys are pinned to (see Rig) */}
         <group
           name={SCREEN_NAME}
           position={[SCREEN.center[0], SCREEN.center[1], SCREEN.center[2]]}
           rotation={[SCREEN.tilt, 0, 0]}
-        >
-          <Html
-            portal={portal as React.RefObject<HTMLElement>}
-            // drei's wrapper is `overflow: hidden`, which is still scrollable
-            // from script/focus: the 3D plane's bounding box is far larger than
-            // the canvas, so a focus/keyboard/selection auto-scroll would shift
-            // the whole DOM screen off the monitor. `clip` can't scroll at all.
-            wrapperClass="overflow-clip!"
-            transform
-            distanceFactor={(SCREEN.width * 400) / width}
-            zIndexRange={[20, 0]}
-            style={{ userSelect: "text" }}
-          >
-            <Terminal {...terminal} width={width} height={height} fontSize={fontSize} />
-          </Html>
-        </group>
-        {/* quick-command keys on the blank bezel right of the screen */}
-        <group position={[KEYS_PANEL.center[0], KEYS_PANEL.center[1], KEYS_PANEL.center[2]]}>
-          <Html
-            portal={portal as React.RefObject<HTMLElement>}
-            wrapperClass="overflow-clip!"
-            transform
-            // same px-per-unit as the screen
-            distanceFactor={(SCREEN.width * 400) / width}
-            zIndexRange={[20, 0]}
-          >
-            <QuickKeys
-              ref={keysRef}
-              width={Math.round((width * KEYS_PANEL.width) / SCREEN.width)}
-              height={Math.round((width * KEYS_PANEL.height) / SCREEN.width)}
-              onKey={onQuickKey}
-            />
-          </Html>
-        </group>
+        />
+        <group
+          name={KEYS_NAME}
+          position={[KEYS_PANEL.center[0], KEYS_PANEL.center[1], KEYS_PANEL.center[2]]}
+        />
       </group>
       {/* phosphor glow spilling onto the keyboard */}
       <pointLight
@@ -456,7 +587,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
   const chipsRef = useRef<HTMLDivElement>(null);
   const keysRef = useRef<HTMLDivElement>(null);
   const terminalRootRef = useRef<HTMLDivElement>(null);
-  const htmlPortalRef = useRef<HTMLDivElement>(null);
+  const screenHostRef = useRef<HTMLDivElement>(null);
+  const keysHostRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<TerminalController>(null);
   const drag = useRef<DragState>({ active: false, lastX: 0, lastY: 0, x: 0, y: 0 });
 
@@ -545,6 +677,20 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
 
   const insetBottom = touch ? CHIPS_INSET_PX : 0;
 
+  // Size the DOM terminal so it's ~1:1 with screen pixels when focused
+  // (crisp text). Focus fits the screen by width or by height, whichever is
+  // tighter, so wide canvases don't end up with downscaled text. Touch devices
+  // use a 16px font (avoids iOS zoom-on-focus) rendered a bit smaller.
+  const canvasSize = useElementSize(wrapperRef);
+  const fontSize = touch ? 16 : 13;
+  const focusedScreenPx =
+    Math.min(canvasSize.width, (canvasSize.height - insetBottom) * SCREEN_ASPECT) / FOCUS_MARGIN;
+  const screenW = Math.round(THREE.MathUtils.clamp(focusedScreenPx * (touch ? 1.55 : 1), 380, 900));
+  const screenH = Math.round(screenW / SCREEN_ASPECT);
+  // the keys panel uses the same px-per-unit as the screen
+  const keysW = Math.round((screenW * KEYS_PANEL.width) / SCREEN.width);
+  const keysH = Math.round((screenW * KEYS_PANEL.height) / SCREEN.width);
+
   const terminal: ScreenProps = {
     focused,
     reducedMotion,
@@ -585,7 +731,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
             >
               <Canvas
                 // "demand" (not "never") off-screen, so resizes still render a
-                // frame and the <Html> screen's transform stays in sync.
+                // frame and the pinned DOM layers stay in sync.
                 frameloop={inView ? "always" : "demand"}
                 dpr={isMobile ? [1, 1.5] : [1, 2]}
                 camera={{ fov: 30, near: 0.1, far: 60, position: [0, 1, 12] }}
@@ -603,18 +749,12 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
                   reducedMotion={reducedMotion}
                   drag={drag}
                   insetBottom={insetBottom}
-                  compact={isMobile}
                   screenEl={terminalRootRef}
+                  screenHost={screenHostRef}
+                  keysHost={keysHostRef}
                 />
                 <Suspense fallback={null}>
-                  <Computer
-                    onReady={onReady}
-                    terminal={terminal}
-                    portal={htmlPortalRef}
-                    insetBottom={insetBottom}
-                    keysRef={keysRef}
-                    onQuickKey={runCommand}
-                  />
+                  <Computer onReady={onReady} />
                 </Suspense>
                 <ContactShadows
                   position={[0, MODEL_Y - 0.02, 0]}
@@ -627,14 +767,32 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
               </Canvas>
 
               {/*
-                Fixed mount point for the <Html> screen. Without it drei picks
-                `events.connected || gl.domElement.parentNode`, which changes once R3F
-                connects its events after the first render; drei then unmounts and
-                re-creates the screen's React root mid-commit ("Attempted to
-                synchronously unmount a root...") and can leave it empty. It must
-                cover exactly the canvas box, since drei positions from its corner.
+                DOM layers over the canvas, pinned onto the 3D screen and keys
+                panel every frame by Rig (a transform from their top-left
+                corner, in this box's px). `overflow: clip` rather than hidden:
+                a hidden box is still scrollable from script/focus, and a
+                focus/keyboard/selection auto-scroll would shift them off the
+                monitor.
               */}
-              <div ref={htmlPortalRef} className="pointer-events-none absolute inset-0" />
+              {canvasSize.width > 0 && (
+                <div className="pointer-events-none absolute inset-0 overflow-clip">
+                  <div
+                    ref={screenHostRef}
+                    className="pointer-events-auto absolute left-0 top-0 origin-top-left select-text"
+                    style={{ width: screenW, height: screenH }}
+                  >
+                    <Terminal {...terminal} width={screenW} height={screenH} fontSize={fontSize} />
+                  </div>
+                  {/* quick-command keys on the blank bezel right of the screen */}
+                  <div
+                    ref={keysHostRef}
+                    className="pointer-events-auto absolute left-0 top-0 origin-top-left"
+                    style={{ width: keysW, height: keysH }}
+                  >
+                    <QuickKeys ref={keysRef} width={keysW} height={keysH} onKey={runCommand} />
+                  </div>
+                </div>
+              )}
             </div>
           </WebGLBoundary>
         ) : (

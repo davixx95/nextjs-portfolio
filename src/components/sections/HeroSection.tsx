@@ -138,7 +138,7 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
           </div>
 
           {/* Right Column: interactive 3D computer */}
-          <div className="relative order-3 lg:order-none lg:col-span-6 lg:-mr-6">
+          <div className="relative order-3 lg:order-none lg:col-span-6 -mx-4 sm:-mx-6 lg:mx-0 lg:-mr-6">
             {/*
               Ambient glow, centred on the computer's canvas box (not the
               section), so it stays on the computer at any viewport width.
