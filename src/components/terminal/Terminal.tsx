@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { buildFs, formatPath } from "./fs";
@@ -20,8 +27,6 @@ export interface TerminalProps {
   height: number;
   fontSize: number;
   focused: boolean;
-  /** Becomes true once the screen is visible; starts the auto-boot timer. */
-  autoBoot: boolean;
   reducedMotion: boolean;
   /** Touch devices: don't pop the on-screen keyboard unless the input is tapped. */
   touch: boolean;
@@ -40,7 +45,6 @@ interface Line {
 }
 
 const MAX_LINES = 300;
-const AUTO_BOOT_DELAY = 3500;
 
 const BOOT_LINES: [string, string][] = [
   ["dim", "<<< NixOS Stage 1 >>>"],
@@ -92,7 +96,6 @@ export function Terminal({
   height,
   fontSize,
   focused,
-  autoBoot,
   reducedMotion,
   touch,
   currentTheme,
@@ -122,19 +125,33 @@ export function Terminal({
   const historyIdx = useRef<number | null>(null);
   const lineId = useRef(0);
   const bootRun = useRef(0);
-  const autoBootDone = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Latest props for async sequences / callbacks handed to other roots.
-  const props = useRef({ reducedMotion, currentTheme, onContact, onSetTheme, onRequestBlur });
+  const props = useRef({
+    reducedMotion,
+    currentTheme,
+    onContact,
+    onSetTheme,
+    onRequestBlur,
+  });
   useLayoutEffect(() => {
-    props.current = { reducedMotion, currentTheme, onContact, onSetTheme, onRequestBlur };
+    props.current = {
+      reducedMotion,
+      currentTheme,
+      onContact,
+      onSetTheme,
+      onRequestBlur,
+    };
   });
 
   const push = useCallback((...nodes: React.ReactNode[]) => {
     setLines((prev) => {
-      const next = [...prev, ...nodes.map((node) => ({ id: ++lineId.current, node }))];
+      const next = [
+        ...prev,
+        ...nodes.map((node) => ({ id: ++lineId.current, node })),
+      ];
       return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
     });
   }, []);
@@ -200,17 +217,25 @@ export function Terminal({
   const showWelcome = useCallback(() => {
     setLines([]);
     push(
-      <div className="text-emerald-600">Last login: {new Date().toDateString()} on tty1</div>,
+      <div className="text-emerald-600">
+        Last login: {new Date().toDateString()} on tty1
+      </div>,
     );
     runLineRef.current("neofetch");
     push(
       <div className="text-emerald-500">
         type{" "}
-        <Clickable className="text-amber-300" onClick={() => runLineRef.current("help")}>
+        <Clickable
+          className="text-amber-300"
+          onClick={() => runLineRef.current("help")}
+        >
           help
         </Clickable>{" "}
         to get started, or{" "}
-        <Clickable className="text-amber-300" onClick={() => runLineRef.current("ls")}>
+        <Clickable
+          className="text-amber-300"
+          onClick={() => runLineRef.current("ls")}
+        >
           ls
         </Clickable>{" "}
         to look around.
@@ -225,7 +250,6 @@ export function Terminal({
   const boot = useCallback(
     async (instant = false) => {
       if (modeRef.current !== "photo") return;
-      autoBootDone.current = true;
       const run = ++bootRun.current;
       const alive = () => bootRun.current === run;
 
@@ -247,7 +271,11 @@ export function Terminal({
 
       // "type" neofetch at a fresh prompt
       setLines([]);
-      push(<div className="text-emerald-600">Last login: {new Date().toDateString()} on tty1</div>);
+      push(
+        <div className="text-emerald-600">
+          Last login: {new Date().toDateString()} on tty1
+        </div>,
+      );
       setPromptVisible(true);
       const cmd = "neofetch";
       for (let i = 1; i <= cmd.length; i++) {
@@ -284,13 +312,6 @@ export function Terminal({
       boot: () => boot(),
     };
   }, [boot, skipBoot, controllerRef]);
-
-  // Auto-boot a few seconds after the screen first becomes visible.
-  useEffect(() => {
-    if (!autoBoot || mode !== "photo" || autoBootDone.current) return;
-    const t = setTimeout(() => boot(), AUTO_BOOT_DELAY);
-    return () => clearTimeout(t);
-  }, [autoBoot, mode, boot]);
 
   // Cancel any running boot sequence on unmount.
   useEffect(() => () => void bootRun.current++, []);
@@ -353,8 +374,10 @@ export function Terminal({
       const history = historyRef.current;
       if (!history.length) return;
       let idx = historyIdx.current;
-      if (e.key === "ArrowUp") idx = idx === null ? history.length - 1 : Math.max(0, idx - 1);
-      else idx = idx === null ? null : idx + 1 >= history.length ? null : idx + 1;
+      if (e.key === "ArrowUp")
+        idx = idx === null ? history.length - 1 : Math.max(0, idx - 1);
+      else
+        idx = idx === null ? null : idx + 1 >= history.length ? null : idx + 1;
       historyIdx.current = idx;
       setInput(idx === null ? "" : history[idx]);
     } else if (e.ctrlKey && e.key.toLowerCase() === "l") {
@@ -385,7 +408,8 @@ export function Terminal({
         // The input handles keys in shell mode; this covers photo/boot screens.
         if (mode === "shell") return;
         if (e.key === "Escape") return onRequestBlur();
-        if (e.metaKey || e.altKey || e.key === "Tab" || e.key === "Shift") return;
+        if (e.metaKey || e.altKey || e.key === "Tab" || e.key === "Shift")
+          return;
         e.preventDefault();
         if (mode === "photo") boot();
         else skipBoot();
@@ -408,7 +432,8 @@ export function Terminal({
           return;
         }
         const selecting = !!window.getSelection()?.toString();
-        if (!selecting && (!touch || e.target === inputRef.current)) focusInput();
+        if (!selecting && (!touch || e.target === inputRef.current))
+          focusInput();
       }}
     >
       {mode === "photo" ? (
@@ -422,7 +447,9 @@ export function Terminal({
           />
           <div className="absolute inset-0 bg-emerald-500/15 mix-blend-color" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-[1.2em] pb-[0.9em] pt-[3em]">
-            <div className="font-bold tracking-wide text-emerald-300">DAVIDE FEDELE</div>
+            <div className="font-bold tracking-wide text-emerald-300">
+              DAVIDE FEDELE
+            </div>
             <button
               type="button"
               onClick={(e) => {
@@ -474,9 +501,18 @@ export function Terminal({
       )}
 
       {/* CRT overlays */}
-      <div aria-hidden className="crt-scanlines pointer-events-none absolute inset-0" />
-      <div aria-hidden className="crt-flicker pointer-events-none absolute inset-0" />
-      <div aria-hidden className="crt-vignette pointer-events-none absolute inset-0" />
+      <div
+        aria-hidden
+        className="crt-scanlines pointer-events-none absolute inset-0"
+      />
+      <div
+        aria-hidden
+        className="crt-flicker pointer-events-none absolute inset-0"
+      />
+      <div
+        aria-hidden
+        className="crt-vignette pointer-events-none absolute inset-0"
+      />
     </div>
   );
 }

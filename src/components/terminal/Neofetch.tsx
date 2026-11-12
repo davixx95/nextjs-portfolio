@@ -10,8 +10,6 @@ export const MACHINE = {
   os: "NixOS 26.11 x86_64",
   kernel: "6.18.60",
   shell: "zsh",
-  wm: "Hyprland",
-  editor: "nvim",
 };
 
 export const CAREER_START_YEAR = 2022;
@@ -30,7 +28,10 @@ const NIX_DARK = "#5277c3";
 
 function Logo() {
   return (
-    <pre aria-hidden className="m-0 leading-[1.35] [text-shadow:none] font-bold">
+    <pre
+      aria-hidden
+      className="m-0 leading-[1.35] [text-shadow:none] font-bold"
+    >
       {LOGO.split("").map((ch, i) =>
         ch === "\\" ? (
           <span key={i} style={{ color: NIX_LIGHT }}>
@@ -63,16 +64,19 @@ export function Neofetch() {
   const experiences = experienceData as WorkExperience[];
   const current = experiences.find((e) => e.isCurrent);
   const years = new Date().getFullYear() - CAREER_START_YEAR;
-  const companies = [...experiences].reverse().map((e) => e.company.split(" ")[0]);
+  const companies = [...experiences]
+    .reverse()
+    .map((e) => e.company.split(" ")[0]);
 
   const rows: [string, string][] = [
     ["OS", MACHINE.os],
     ["Kernel", MACHINE.kernel],
     ["Uptime", `${years}+ years shipping React`],
     ["Shell", MACHINE.shell],
-    ["WM", MACHINE.wm],
-    ["Editor", MACHINE.editor],
-    ["Role", current ? `${current.role} @ ${current.company}` : "Front End Developer"],
+    [
+      "Role",
+      current ? `${current.role} @ ${current.company}` : "Front End Developer",
+    ],
     ["Focus", "Enterprise web apps"],
     ["History", companies.join(" → ")],
     ["Location", "Rome, Italy (Remote)"],
@@ -106,7 +110,11 @@ export function Neofetch() {
         ))}
         <div className="mt-2 flex [text-shadow:none]" aria-hidden>
           {PALETTE.map((c) => (
-            <span key={c} className="inline-block h-[1em] w-[2.2ch]" style={{ background: c }} />
+            <span
+              key={c}
+              className="inline-block h-[1em] w-[2.2ch]"
+              style={{ background: c }}
+            />
           ))}
         </div>
       </div>

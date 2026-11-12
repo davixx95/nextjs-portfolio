@@ -419,7 +419,6 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
 
   const terminal: ScreenProps = {
     focused,
-    autoBoot: inView && ready,
     reducedMotion,
     touch,
     currentTheme: resolvedTheme,
