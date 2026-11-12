@@ -6,13 +6,12 @@ import {
   Copy,
   Check,
   Send,
-  Github,
-  Linkedin,
   Mail,
   Loader2,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "./Button";
+import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ContactModalProps {
@@ -269,7 +268,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 hover:text-primary transition-colors"
                 >
-                  <Github className="w-4 h-4" />
+                  <GithubIcon className="w-4 h-4" />
                   <span className="font-mono">GitHub</span>
                 </a>
                 <a
@@ -278,7 +277,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 hover:text-primary transition-colors"
                 >
-                  <Linkedin className="w-4 h-4" />
+                  <LinkedinIcon className="w-4 h-4" />
                   <span className="font-mono">LinkedIn</span>
                 </a>
               </div>

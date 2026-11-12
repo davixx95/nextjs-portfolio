@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Project } from "@/types";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { FolderGit2, ExternalLink, Github, Layers } from "lucide-react";
+import { FolderGit2, ExternalLink, Layers } from "lucide-react";
+import { GithubIcon } from "@/components/ui/BrandIcons";
 import { motion, AnimatePresence } from "framer-motion";
 import useMeasure from "react-use-measure";
 
@@ -144,7 +145,7 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-text-muted hover:text-primary transition-colors"
                             >
-                              <Github className="w-3.5 h-3.5" />
+                              <GithubIcon className="w-3.5 h-3.5" />
                               <span>Code Repository</span>
                             </a>
                           )}
