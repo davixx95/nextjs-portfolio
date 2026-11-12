@@ -7,12 +7,32 @@ interface CustomScrollbarProps {
   containerRef?: React.RefObject<HTMLElement | null>;
 }
 
+/** Breathing room (px) between the track and the header / bottom edge. */
+const TRACK_GAP = 4;
+
 export default function CustomScrollbar({
   containerRef,
 }: CustomScrollbarProps) {
   const [isHovered, setIsHovered] = useState(false); // True when mouse is physically over the scrollbar
   const [isScrolling, setIsScrolling] = useState(false); // True briefly after a scroll event
   const [isDragging, setIsDragging] = useState(false);
+
+  // When tracking the window, the track starts below the sticky page header:
+  // the header never scrolls, so the bar only spans the area that does.
+  const [topInset, setTopInset] = useState(0);
+  const topInsetRef = useRef(0);
+  useEffect(() => {
+    if (containerRef) return;
+    const header = document.querySelector("header");
+    if (!header) return;
+    const ro = new ResizeObserver(() => {
+      const h = header.getBoundingClientRect().height;
+      topInsetRef.current = h;
+      setTopInset(h);
+    });
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, [containerRef]);
 
   const thumbPosRef = useRef<HTMLDivElement>(null);
   const thumbVisualRef = useRef<HTMLDivElement>(null);
@@ -53,13 +73,14 @@ export default function CustomScrollbar({
       return;
     }
 
+    const trackHeight = clientHeight - topInsetRef.current - 2 * TRACK_GAP;
     const minThumbHeight = 40;
     const computedHeight = Math.max(
-      (clientHeight / scrollHeight) * clientHeight,
+      (clientHeight / scrollHeight) * trackHeight,
       minThumbHeight,
     );
     const maxScrollTop = scrollHeight - clientHeight;
-    const maxThumbTop = clientHeight - computedHeight;
+    const maxThumbTop = trackHeight - computedHeight;
     const computedTop =
       maxScrollTop > 0 ? (scrollTop / maxScrollTop) * maxThumbTop : 0;
 
@@ -111,6 +132,11 @@ export default function CustomScrollbar({
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, [containerRef, handleScroll, updatePositionDirect]);
+
+  // Re-fit the thumb when the header's height (and so the track) changes.
+  useEffect(() => {
+    updatePositionDirect();
+  }, [topInset, updatePositionDirect]);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -177,7 +203,10 @@ export default function CustomScrollbar({
   const isActive = isHovered || isDragging || isScrolling;
 
   return (
-    <div className="fixed right-1 top-0 bottom-0 z-50 w-2.5 pointer-events-auto select-none">
+    <div
+      className="fixed right-1 z-50 w-2.5 pointer-events-auto select-none"
+      style={{ top: topInset + TRACK_GAP, bottom: TRACK_GAP }}
+    >
       {/* Position container: absolutely NO CSS transitions on transform to guarantee instant 1:1 scroll tracking */}
       <div
         ref={thumbPosRef}
