@@ -20,29 +20,57 @@ import { HERO_COMPUTER_HEIGHT, HeroComputerPoster } from "./HeroComputerPoster";
 
 /* ------------------------------------------------------------- constants -- */
 
-// "Computer 90s" by Charlie, via Poly Pizza (CC-BY). 34 KB, 270 triangles.
-const MODEL_URL = "/models/computer-90s.glb";
-const MODEL_SCALE = 30;
-
-/** The monitor's screen quad, in model units (read from the GLB's screen primitive). */
-const SCREEN = {
-  center: [-0.001, 0.05115, 0.0171] as const,
-  tilt: -0.1356, // the screen leans back ~7.8°
-  width: 0.037,
-  height: 0.0294,
-};
-const SCREEN_ASPECT = SCREEN.width / SCREEN.height;
+// "Vintage Terminal" by NoMoreFeelings, via Sketchfab (CC BY). Optimized by
+// scripts/optimize-terminal-model.mjs: 73 KB, ~1.2k triangles.
+const MODEL_URL = "/models/vintage-terminal.glb";
+const MODEL_SCALE = 1;
+/** Model-space y of the model's lowest point and z of the case's middle (the turn pivot). */
+const MODEL_BOTTOM = -1.134;
+const MODEL_PIVOT_Z = 0.2;
 
 /**
- * Resting camera: a "bust shot" of the monitor + top of the case, so the
- * screen fills ~47-50% of the canvas width and stays legible before the first
- * click. The keyboard and mouse sit below the frame and are faded out by a CSS
- * mask on the wrapper (see `.hero-computer-fade` in globals.css). The fit box
- * includes the idle sway range.
+ * The CRT, in model units (read from the GLB's `screen` and `bezel` meshes).
+ * The DOM screen sits on the plane of the glass's edge; the glass is set
+ * deep into the bezel, so `RIM` (the bezel's front opening) clips it when the
+ * computer is turned (see `clipToRim`).
  */
-const REST_FIT = { width: 2.25, height: 2.3 };
-const REST_TARGET = new THREE.Vector3(0.05, 0.2, 0.03);
-const REST_DIRECTION = new THREE.Vector3(0.08, 0.14, 1).normalize();
+const SCREEN = {
+  center: [-0.348, 0.096, 1.061] as const,
+  tilt: 0,
+  width: 1.54,
+  height: 1.02,
+};
+const SCREEN_ASPECT = SCREEN.width / SCREEN.height;
+const RIM = { left: -1.2, right: 0.504, top: 0.676, bottom: -0.486, z: 1.258 };
+
+/**
+ * The quick-command keys fill the blank bezel right of the screen (model
+ * units: centre and size of the panel, on the case's front face).
+ */
+const KEYS_PANEL = { center: [0.95, -0.02, 1.262] as const, width: 0.62, height: 0.86 };
+const QUICK_KEYS: { label: string; cmd: string }[] = [
+  { label: "about", cmd: "cat about.md" },
+  { label: "work", cmd: "ls experience" },
+  { label: "skills", cmd: "ls skills" },
+  { label: "help", cmd: "help" },
+];
+
+/**
+ * Resting camera, seen slightly from above. The fit box includes the idle
+ * sway range. Wide canvases show the whole terminal, keyboard included;
+ * phones frame just the monitor so the screen and the keys stay legible.
+ */
+const REST = {
+  wide: {
+    fit: { width: 3.9, height: 3.0 },
+    target: new THREE.Vector3(0.0, -0.05, 0.45),
+  },
+  compact: {
+    fit: { width: 3.2, height: 2.1 },
+    target: new THREE.Vector3(-0.05, -0.2, 0.7),
+  },
+};
+const REST_DIRECTION = new THREE.Vector3(0.06, 0.32, 1).normalize();
 const REST_YAW = -0.2; // turn the computer slightly towards the page text
 const MODEL_Y = -1.05;
 
@@ -52,7 +80,10 @@ const FOCUS_MARGIN = 1.2;
 const MODEL_NAME = "hero-computer";
 const SCREEN_NAME = "hero-computer-screen";
 
-/** On touch devices the command chips overlay the bottom of the canvas. */
+/**
+ * Touch devices, focused: the quick keys are out of frame, so command chips
+ * overlay the bottom of the canvas instead.
+ */
 const CHIPS_INSET_PX = 44;
 
 const MOBILE_COMMANDS = ["neofetch", "ls", "cat about.md", "ls experience", "help", "clear"];
@@ -141,15 +172,23 @@ function Rig({
   reducedMotion,
   drag,
   insetBottom,
+  compact,
+  screenEl,
 }: {
   focused: boolean;
   reducedMotion: boolean;
   drag: React.RefObject<DragState>;
   /** CSS px at the bottom of the canvas covered by UI (the touch chips). */
   insetBottom: number;
+  /** Phone-sized canvas: use the tighter resting framing. */
+  compact: boolean;
+  /** The DOM screen, clipped to the bezel's opening every frame. */
+  screenEl: React.RefObject<HTMLDivElement | null>;
 }) {
   const state = useRef({
-      look: REST_TARGET.clone(),
+      look: REST.wide.target.clone(),
+      eye: new THREE.Vector3(),
+      clip: "",
       pos: new THREE.Vector3(),
       target: new THREE.Vector3(),
       normal: new THREE.Vector3(),
@@ -208,9 +247,10 @@ function Rig({
         s.target.addScaledVector(s.up, -shift);
       }
     } else {
-      s.target.copy(REST_TARGET);
-      const dist = fitDistance(REST_FIT.width, REST_FIT.height, camera);
-      s.pos.copy(REST_TARGET).addScaledVector(REST_DIRECTION, dist);
+      const rest = compact ? REST.compact : REST.wide;
+      s.target.copy(rest.target);
+      const dist = fitDistance(rest.fit.width, rest.fit.height, camera);
+      s.pos.copy(rest.target).addScaledVector(REST_DIRECTION, dist);
     }
 
     const k = s.first || reducedMotion ? 1 : ease(4.5);
@@ -219,6 +259,30 @@ function Rig({
     s.look.lerp(s.target, k);
     camera.lookAt(s.look);
     camera.updateMatrixWorld();
+
+    // The glass sits deep inside the bezel, but the DOM screen is drawn over
+    // the canvas, so the 3D bezel can't hide it. Instead, project the bezel's
+    // front opening onto the screen's plane (from the camera) and clip the DOM
+    // screen to it: turning the computer then hides the far edge.
+    const el = screenEl.current;
+    if (el && s.screen) {
+      s.eye.copy(camera.position);
+      s.screen.worldToLocal(s.eye);
+      const depth = RIM.z - SCREEN.center[2];
+      const k = s.eye.z / (s.eye.z - depth);
+      const pt = (x: number, y: number) => {
+        const lx = s.eye.x + (x - SCREEN.center[0] - s.eye.x) * k;
+        const ly = s.eye.y + (y - SCREEN.center[1] - s.eye.y) * k;
+        const u = (lx / SCREEN.width + 0.5) * 100;
+        const v = (0.5 - ly / SCREEN.height) * 100;
+        return `${u.toFixed(2)}% ${v.toFixed(2)}%`;
+      };
+      const clip = `polygon(${pt(RIM.left, RIM.top)}, ${pt(RIM.right, RIM.top)}, ${pt(RIM.right, RIM.bottom)}, ${pt(RIM.left, RIM.bottom)})`;
+      if (clip !== s.clip) {
+        el.style.setProperty("clip-path", clip);
+        s.clip = clip;
+      }
+    }
   });
 
   return null;
@@ -226,45 +290,79 @@ function Rig({
 
 type ScreenProps = Omit<TerminalProps, "width" | "height" | "fontSize">;
 
+/**
+ * A column of chunky keys moulded into the bezel. Sized in em off the panel
+ * width, so it scales with the model like the screen does.
+ */
+function QuickKeys({
+  ref,
+  width,
+  height,
+  onKey,
+}: {
+  ref: React.RefObject<HTMLDivElement | null>;
+  width: number;
+  height: number;
+  onKey: (cmd: string) => void;
+}) {
+  return (
+    <div
+      ref={ref}
+      className="flex flex-col justify-center gap-[0.45em] px-[0.5em] font-mono select-none"
+      style={{ width, height, fontSize: width * 0.13 }}
+      // keep presses away from the drag-to-tilt handler on the canvas
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <span className="pl-[0.15em] text-[0.62em] font-bold tracking-[0.25em] text-[#6f6858] [text-shadow:0_0.06em_0_rgba(255,255,255,0.5)]">
+        QUICK KEYS
+      </span>
+      {QUICK_KEYS.map(({ label, cmd }) => (
+        <button
+          key={label}
+          type="button"
+          onClick={() => onKey(cmd)}
+          title={cmd}
+          className="flex items-center gap-[0.5em] rounded-[0.3em] border-b-[0.18em] border-black/60 bg-[#24251f] px-[0.5em] py-[0.3em] text-left text-emerald-400 shadow-[0_0.1em_0.2em_rgba(0,0,0,0.35)] transition-[transform,border-width,color] hover:text-emerald-300 active:translate-y-[0.12em] active:border-b-[0.06em] outline-none focus-visible:ring-[0.12em] focus-visible:ring-emerald-400"
+        >
+          <span className="text-emerald-700">▸</span>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Computer({
   onReady,
   terminal,
   portal,
   insetBottom,
+  keysRef,
+  onQuickKey,
 }: {
   onReady: () => void;
   terminal: ScreenProps;
   insetBottom: number;
   /** Stable DOM container for the <Html> screen (see HeroComputer). */
   portal: React.RefObject<HTMLDivElement | null>;
+  keysRef: React.RefObject<HTMLDivElement | null>;
+  onQuickKey: (cmd: string) => void;
 }) {
   const { scene } = useGLTF(MODEL_URL);
   const size = useThree((st) => st.size);
 
   useLayoutEffect(() => {
-    // The speakers would only end up cropped by the tight framing. In the GLB
-    // they're a Group (GLTFLoader splits multi-primitive meshes), so remove the
-    // node itself; optional chaining keeps StrictMode's double-run safe.
-    scene.getObjectByName("speakers")?.removeFromParent();
-
     const screenMaterial = new THREE.MeshBasicMaterial({ color: "#030806" });
     scene.traverse((obj) => {
       if (!(obj as THREE.Mesh).isMesh) return;
       const mesh = obj as THREE.Mesh;
-      if (mesh.name === "screentext") {
-        mesh.visible = false;
-        return;
-      }
       const material = mesh.material as THREE.MeshStandardMaterial;
-      if (material.name === "M_screen_brightblue") {
+      if (material.name === "screen") {
         mesh.material = screenMaterial;
         return;
       }
-      // The source was authored as matte Lambert; drop the metalness so it
-      // doesn't need an environment map to look right.
-      material.metalness = 0;
-      material.roughness = 0.85;
-      mesh.castShadow = true;
+      // Only the front is ever seen, so skip the back faces.
+      material.side = THREE.FrontSide;
     });
   }, [scene]);
 
@@ -290,11 +388,14 @@ function Computer({
 
   return (
     <group name={MODEL_NAME} position={[0, MODEL_Y, 0]} rotation={[0, REST_YAW, 0]}>
-      <group scale={MODEL_SCALE} position={[0, 0, -0.013 * MODEL_SCALE]}>
+      <group
+        scale={MODEL_SCALE}
+        position={[0, -MODEL_BOTTOM * MODEL_SCALE, -MODEL_PIVOT_Z * MODEL_SCALE]}
+      >
         <primitive object={scene} />
         <group
           name={SCREEN_NAME}
-          position={[SCREEN.center[0], SCREEN.center[1], SCREEN.center[2] + 0.0003]}
+          position={[SCREEN.center[0], SCREEN.center[1], SCREEN.center[2]]}
           rotation={[SCREEN.tilt, 0, 0]}
         >
           <Html
@@ -312,10 +413,32 @@ function Computer({
             <Terminal {...terminal} width={width} height={height} fontSize={fontSize} />
           </Html>
         </group>
+        {/* quick-command keys on the blank bezel right of the screen */}
+        <group position={[KEYS_PANEL.center[0], KEYS_PANEL.center[1], KEYS_PANEL.center[2]]}>
+          <Html
+            portal={portal as React.RefObject<HTMLElement>}
+            wrapperClass="overflow-clip!"
+            transform
+            // same px-per-unit as the screen
+            distanceFactor={(SCREEN.width * 400) / width}
+            zIndexRange={[20, 0]}
+          >
+            <QuickKeys
+              ref={keysRef}
+              width={Math.round((width * KEYS_PANEL.width) / SCREEN.width)}
+              height={Math.round((width * KEYS_PANEL.height) / SCREEN.width)}
+              onKey={onQuickKey}
+            />
+          </Html>
+        </group>
       </group>
       {/* phosphor glow spilling onto the keyboard */}
       <pointLight
-        position={[0, SCREEN.center[1] * MODEL_SCALE, 1.2]}
+        position={[
+          SCREEN.center[0] * MODEL_SCALE,
+          (SCREEN.center[1] - MODEL_BOTTOM) * MODEL_SCALE,
+          (RIM.z - MODEL_PIVOT_Z) * MODEL_SCALE + 0.4,
+        ]}
         color="#34d399"
         intensity={3}
         distance={3.5}
@@ -331,6 +454,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const exitRef = useRef<HTMLDivElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
+  const keysRef = useRef<HTMLDivElement>(null);
   const terminalRootRef = useRef<HTMLDivElement>(null);
   const htmlPortalRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<TerminalController>(null);
@@ -352,13 +476,17 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
     setFocused(false);
     onContact();
   }, [onContact]);
+  const runCommand = useCallback((cmd: string) => {
+    setFocused(true);
+    controllerRef.current?.run(cmd);
+  }, []);
 
   // Leave focus mode on outside clicks / Escape anywhere.
   useEffect(() => {
     if (!focused) return;
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node;
-      const inside = [terminalRootRef, exitRef, chipsRef].some((r) => r.current?.contains(target));
+      const inside = [terminalRootRef, exitRef, chipsRef, keysRef].some((r) => r.current?.contains(target));
       if (inside) return;
       setFocused(false);
     };
@@ -475,6 +603,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
                   reducedMotion={reducedMotion}
                   drag={drag}
                   insetBottom={insetBottom}
+                  compact={isMobile}
+                  screenEl={terminalRootRef}
                 />
                 <Suspense fallback={null}>
                   <Computer
@@ -482,6 +612,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
                     terminal={terminal}
                     portal={htmlPortalRef}
                     insetBottom={insetBottom}
+                    keysRef={keysRef}
+                    onQuickKey={runCommand}
                   />
                 </Suspense>
                 <ContactShadows
@@ -509,8 +641,8 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
           <HeroComputerPoster />
         )}
 
-        {/* touch: command chips over the (faded) bottom of the canvas */}
-        {touch && (
+        {/* touch, focused: command chips over the bottom of the canvas */}
+        {touch && focused && (
           <div
             ref={chipsRef}
             className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-2 overflow-x-auto px-1 py-1.5 font-mono text-xs [scrollbar-width:none] sm:justify-center"
@@ -520,10 +652,7 @@ export default function HeroComputer({ onContact }: { onContact: () => void }) {
               <button
                 key={cmd}
                 type="button"
-                onClick={() => {
-                  setFocused(true);
-                  controllerRef.current?.run(cmd);
-                }}
+                onClick={() => runCommand(cmd)}
                 className="shrink-0 rounded-full border border-emerald-500/40 bg-surface/85 px-3 py-1.5 text-emerald-600 shadow-sm backdrop-blur-sm active:bg-emerald-500/15 dark:text-emerald-400"
               >
                 <span className="text-text-muted">$ </span>

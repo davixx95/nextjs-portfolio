@@ -58,14 +58,14 @@ export function Footer() {
         <p className="text-[10px] font-mono text-text-muted/70">
           3D model:{" "}
           <a
-            href="https://poly.pizza/m/Bw55oYsbp8"
+            href="https://sketchfab.com/3d-models/vintage-terminal-847c174b86e24d868d25217ca2297886"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2 hover:text-primary transition-colors"
           >
-            &ldquo;Computer 90s&rdquo; by Charlie
+            &ldquo;Vintage Terminal&rdquo; by NoMoreFeelings
           </a>{" "}
-          via Poly Pizza (CC BY)
+          via Sketchfab (CC BY)
         </p>
       </div>
     </footer>

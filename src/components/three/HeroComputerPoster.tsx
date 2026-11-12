@@ -14,8 +14,8 @@ export const HERO_COMPUTER_HEIGHT =
 export function HeroComputerPoster({ className }: { className?: string }) {
   return (
     <div className={cn("absolute inset-0 flex items-center justify-center", className)}>
-      <div className="w-[62%] max-w-[22rem] rounded-[1.6rem] bg-[#cdbf9f] p-[4.5%] shadow-2xl shadow-black/30">
-        <div className="relative aspect-[1.26] overflow-hidden rounded-xl bg-[#030806]">
+      <div className="w-[62%] max-w-[22rem] rounded-[1.6rem] bg-[#d9d2bf] p-[4.5%] shadow-2xl shadow-black/30">
+        <div className="relative aspect-[1.51] overflow-hidden rounded-xl bg-[#030806]">
           <Image
             src="/headshot.webp"
             alt="Davide Fedele"
