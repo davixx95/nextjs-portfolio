@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "contact-form-handler",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-06",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  // Non-secret config. Secrets (RESEND_API_KEY, TURNSTILE_SECRET, MAIL_TO) are
+  // stored with `wrangler secret put` and never committed. Local overrides live in
+  // .dev.vars (see .dev.vars.example).
+  "vars": {
+    "ALLOWED_ORIGINS": "https://davide.fedele.dev",
+    "TURNSTILE_HOSTNAMES": "davide.fedele.dev",
+    "EMAIL_DRY_RUN": "false"
+  }
+}

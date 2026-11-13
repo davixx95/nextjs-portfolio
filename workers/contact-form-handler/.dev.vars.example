@@ -1,0 +1,9 @@
+# Copy to .dev.vars for `wrangler dev`. .dev.vars is gitignored.
+# Cloudflare's public Turnstile test secret: always passes, reports hostname example.com.
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+TURNSTILE_HOSTNAMES=example.com
+ALLOWED_ORIGINS=http://localhost:3000
+# Log instead of calling Resend. Set to false (and add RESEND_API_KEY) to send real email.
+EMAIL_DRY_RUN=true
+RESEND_API_KEY=
+MAIL_TO=you@example.com

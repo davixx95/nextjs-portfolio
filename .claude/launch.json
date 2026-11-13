@@ -6,6 +6,12 @@
       "runtimeExecutable": "direnv",
       "runtimeArgs": ["exec", ".", "npm", "run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "worker",
+      "runtimeExecutable": "direnv",
+      "runtimeArgs": ["exec", ".", "npx", "wrangler", "dev", "--config", "workers/contact-form-handler/wrangler.jsonc", "--port", "8787"],
+      "port": 8787
     }
   ]
 }

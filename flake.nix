@@ -40,6 +40,10 @@
             enable = true;
             package = pkgs.nodejs_22;
           };
+
+          # workerd (wrangler dev) can't find a CA bundle on NixOS without this,
+          # so outbound fetch() from local Workers fails TLS verification.
+          env.NODE_EXTRA_CA_CERTS = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         };
       };
     };
