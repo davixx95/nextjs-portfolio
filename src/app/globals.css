@@ -116,6 +116,9 @@ html::-webkit-scrollbar {
 }
 
 .crt-scroll {
+  /* Reserve the scrollbar's space even while it's hidden (overflow: hidden
+     at rest), so text doesn't re-wrap when focus turns scrolling on. */
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(16, 185, 129, 0.45) transparent;
 }

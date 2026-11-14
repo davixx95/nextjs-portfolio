@@ -86,9 +86,13 @@ export function Neofetch() {
   const title = `${MACHINE.user}@${MACHINE.host}`;
 
   return (
-    <div className="flex flex-wrap items-start gap-x-5 gap-y-2 py-1">
-      <Logo />
-      <div className="min-w-0 flex-1 basis-[16rem]">
+    // Logo and info always side by side, as in real neofetch: the info
+    // column wraps its own lines instead of dropping below the logo.
+    <div className="flex items-start gap-x-[1.5ch] py-1">
+      <div className="shrink-0">
+        <Logo />
+      </div>
+      <div className="min-w-0 flex-1">
         <div>
           <span className="font-bold" style={{ color: NIX_LIGHT }}>
             {MACHINE.user}
