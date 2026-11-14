@@ -27,7 +27,7 @@ wsl direnv exec . npm run lint     # next lint (flat config in eslint.config.mjs
 wsl direnv exec . npm run deploy   # build + wrangler pages deploy
 ```
 
-There is no test suite configured in this repo.
+There is no test suite configured in this repo. CI (`.github/workflows/ci.yml`) runs `npm ci`, lint and build on every push and pull request to `main`; deploys are manual (`npm run deploy`).
 
 For UI changes, don't rely on a successful build alone — run the dev server and verify visually in a browser (or via the `/browser` tool / Chrome DevTools MCP if available).
 
@@ -35,7 +35,7 @@ For UI changes, don't rely on a successful build alone — run the dev server an
 
 **Static export, no backend.** `next.config.ts` sets `output: "export"` and `images.unoptimized: true` — this is a pure static site (output goes to `./out`), deployed to Cloudflare Pages via `wrangler.json` (`pages_build_output_dir: "out"`). There are no Next.js API routes / route handlers in this repo.
 
-**Contact form posts to a separate Worker, protected by Turnstile.** `ContactModal.tsx` renders a Cloudflare Turnstile widget (action `contact`) and posts the form plus `cf-turnstile-response` to the `contact-form-handler` Worker (`https://contact-form-handler.fedele-davide.workers.dev/`). The Worker's source lives in `workers/contact-form-handler/` with its own `wrangler.jsonc`; it is deployed independently of the Pages site, and is not built by `npm run build`. It validates fields, runs Turnstile siteverify (checks success, action, and hostname), then sends via Resend. Secrets (`RESEND_API_KEY`, `TURNSTILE_SECRET`, `MAIL_TO`) are Worker secrets, never committed. The `resend` npm package is not used in `src/`; the Worker calls Resend's HTTP API directly.
+**Contact form posts to a separate Worker, protected by Turnstile.** `ContactModal.tsx` renders a Cloudflare Turnstile widget (action `contact`) and posts the form plus `cf-turnstile-response` to the `contact-form-handler` Worker (`https://contact-form-handler.fedele-davide.workers.dev/`). The Worker's source lives in `workers/contact-form-handler/` with its own `wrangler.jsonc`; it is deployed independently of the Pages site, and is not built by `npm run build`. It validates fields, runs Turnstile siteverify (checks success, action, and hostname), then sends via Resend. Secrets (`RESEND_API_KEY`, `TURNSTILE_SECRET`, `MAIL_TO`) are Worker secrets, never committed. The Worker calls Resend's HTTP API directly; there is no Resend SDK dependency.
 
 **Local contact-form dev.** `.env.development` points `next dev` at Cloudflare's Turnstile test sitekey and `http://localhost:8787/`. Run the Worker locally with `wrangler dev --config workers/contact-form-handler/wrangler.jsonc` (or the `worker` entry in `.claude/launch.json`) after copying `.dev.vars.example` to `.dev.vars`; it uses the test secret and `EMAIL_DRY_RUN=true`. On NixOS, workerd needs `NODE_EXTRA_CA_CERTS` (set in `flake.nix`) for outbound TLS.
 
@@ -48,7 +48,3 @@ For UI changes, don't rely on a successful build alone — run the dev server an
 **`src/components/ui/`** holds generic, reusable primitives (`Button`, `Card`, `Badge`, `ContactModal`, `CustomScrollbar`, `ThemeToggle`) — variant-driven via `cn()` (`clsx` + `tailwind-merge`, in `src/lib/utils.ts`). **`src/components/sections/`** and **`src/components/layout/`** hold page-specific composition that consumes the `ui/` primitives and the typed JSON data.
 
 **Path alias:** `@/*` maps to `src/*` (see `tsconfig.json`).
-
-## Agent skills
-
-`.agents/skills/` contains a large generic third-party skill library (planning, TDD, code review, domain modeling, etc., mirrored per-agent in `agents/openai.yaml` files). These aren't project-specific — treat them as available general-purpose workflows, not documentation about this codebase.
