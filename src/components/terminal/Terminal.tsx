@@ -46,6 +46,20 @@ interface Line {
 
 const MAX_LINES = 300;
 
+/**
+ * The text area, inset from the screen's edges (in % of its size) so it
+ * stays inside the glass. HeroComputer clips the screen to the glass's
+ * barrel-shaped outline, which curves in by up to ~4.5% at the sides and
+ * ~6% at the top and bottom near the corners; text at the old 1em padding
+ * ran under the curve.
+ */
+const GLASS_SAFE: React.CSSProperties = {
+  top: "7%",
+  bottom: "7%",
+  left: "5.5%",
+  right: "5%",
+};
+
 const BOOT_LINES: [string, string][] = [
   ["dim", "<<< NixOS Stage 1 >>>"],
   ["dim", "loading module dm_mod..."],
@@ -446,7 +460,9 @@ export function Terminal({
             className="object-cover object-[50%_35%] contrast-110 saturate-[0.85]"
           />
           <div className="absolute inset-0 bg-emerald-500/15 mix-blend-color" />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-[1.2em] pb-[0.9em] pt-[3em]">
+          {/* Padding in % of the screen width keeps the caption inside the
+              glass's curved corners (see GLASS_SAFE below). */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-[6.5%] pb-[5.5%] pt-[3em]">
             <div className="font-bold tracking-wide text-emerald-300">
               DAVIDE FEDELE
             </div>
@@ -470,9 +486,10 @@ export function Terminal({
           aria-live="polite"
           aria-label="Terminal output"
           className={cn(
-            "crt-scroll h-full px-[1.1em] py-[0.8em]",
+            "crt-scroll absolute px-[0.4em] py-[0.2em]",
             focused ? "overflow-y-auto overscroll-contain" : "overflow-hidden",
           )}
+          style={GLASS_SAFE}
         >
           {lines.map((l) => (
             <div key={l.id} className="break-words">
