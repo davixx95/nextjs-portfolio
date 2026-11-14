@@ -24,9 +24,9 @@ export function getPersonJsonLd() {
         name: "Davide Fedele",
         url: SITE_URL,
         image: `${SITE_URL}/headshot.webp`,
-        jobTitle: "Senior Fullstack & Systems Engineer",
+        jobTitle: "Frontend Engineer",
         description:
-          "React ecosystem expert building resilient, high-performance web applications for enterprise clients.",
+          "Frontend Engineer specializing in React and Next.js, building web and mobile products for enterprise clients and growing toward full-stack ownership.",
         email: "mailto:davide@fedele.dev",
         sameAs: [
           "https://github.com/davixx95",
@@ -56,9 +56,9 @@ export function getPersonJsonLd() {
         "@type": "ProfilePage",
         "@id": `${SITE_URL}/#profilepage`,
         url: SITE_URL,
-        name: "Davide Fedele | Senior Fullstack & Systems Engineer",
+        name: "Davide Fedele | Frontend Engineer",
         description:
-          "Engineering clean, high-performance web applications, cloud architecture, and microservices with Next.js, TypeScript, and Docker.",
+          "Frontend Engineer in Rome (remote) building React and Next.js products for enterprise clients, growing toward full-stack ownership.",
         isPartOf: { "@id": `${SITE_URL}/#website` },
         mainEntity: { "@id": `${SITE_URL}/#person` },
       },

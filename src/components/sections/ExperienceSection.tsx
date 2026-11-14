@@ -22,8 +22,8 @@ export function ExperienceSection({ experiences }: ExperienceSectionProps) {
             Work Experience
           </h2>
           <p className="text-sm text-text-muted max-w-xl">
-            A track record of engineering scalable web systems, optimizing
-            frontend performance, and leading DevOps initiatives.
+            Frontend work for enterprise clients, from component libraries
+            and dashboards to mobile releases and CI/CD pipelines.
           </p>
         </div>
 

@@ -14,9 +14,19 @@
       { "name": "React", "isPrimary": true },
       { "name": "Next.js", "isPrimary": true },
       { "name": "Tailwind CSS", "isPrimary": true },
-      { "name": "Angular", "isPrimary": false },
       { "name": "Vue", "isPrimary": false },
+      { "name": "Angular", "isPrimary": false },
       { "name": "MUI / Bootstrap", "isPrimary": false }
+    ]
+  },
+  {
+    "category": "State, Data & Charts",
+    "skills": [
+      { "name": "Recoil", "isPrimary": true },
+      { "name": "REST API", "isPrimary": true },
+      { "name": "Recharts", "isPrimary": true },
+      { "name": "Zustand", "isPrimary": false },
+      { "name": "RxJS", "isPrimary": false }
     ]
   },
   {
@@ -29,16 +39,23 @@
     ]
   },
   {
-    "category": "Tools & Architecture",
+    "category": "Full-Stack & DevOps",
     "skills": [
-      { "name": "REST API", "isPrimary": true },
-      { "name": "Recoil", "isPrimary": true },
-      { "name": "Recharts & Chart.js", "isPrimary": true },
-      { "name": "RxJS", "isPrimary": false },
-      { "name": "Docker", "isPrimary": false },
+      { "name": "Node.js", "isPrimary": true },
+      { "name": "GitHub Actions", "isPrimary": true },
+      { "name": "Capacitor", "isPrimary": false },
       { "name": "CI/CD (Jenkins)", "isPrimary": false },
-      { "name": "Git & Jira", "isPrimary": false },
-      { "name": "MongoDB", "isPrimary": false }
+      { "name": "Docker", "isPrimary": false },
+      { "name": "Vercel", "isPrimary": false },
+      { "name": "Git & Jira", "isPrimary": false }
+    ]
+  },
+  {
+    "category": "AI-Assisted Development",
+    "skills": [
+      { "name": "Claude Code", "isPrimary": true },
+      { "name": "Agentic workflows", "isPrimary": false },
+      { "name": "Test-driven verification", "isPrimary": false }
     ]
   }
 ]

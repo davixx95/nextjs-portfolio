@@ -1,54 +1,46 @@
 [
   {
-    "id": "project-1",
-    "title": "Factory Line Monitoring Dashboard",
-    "description": "Refactored a legacy React application, replacing brittle useEffect hooks with Recoil selectors to efficiently poll and render factory telemetry data.",
+    "id": "gleater",
+    "title": "Gleater — Smart Fridge Retail",
+    "description": "Next.js app behind client Pellegrini's smart fridges: QR-based unlock and checkout, plus a companion web storefront for office meal delivery, shipped to iOS and Android with Capacitor. I keep the Node.js/Next.js stack and the GitHub Actions pipeline current, and ship features with Claude Code in a test-first loop.",
     "status": "active",
-    "tags": [
-      "React",
-      "TypeScript",
-      "Recoil",
-      "Recharts",
-      "Axios"
-    ],
-    "githubUrl": "https://github.com/davidefedele/industrial-telemetry"
+    "tags": ["Next.js", "TypeScript", "Capacitor", "GitHub Actions", "Claude Code"]
   },
   {
-    "id": "project-2",
-    "title": "Micro-Frontend UI Architecture",
-    "description": "Contributed to an enterprise component library (MUI) and multiple micro-frontends using Module Federation for HCL's product ecosystem.",
+    "id": "portfolio",
+    "title": "davide.fedele.dev",
+    "description": "This site: a statically exported Next.js site on Cloudflare Pages with a Three.js hero computer, an interactive terminal, and a contact form handled by a Cloudflare Worker with Turnstile verification. Built with Claude Code.",
     "status": "active",
-    "tags": [
-      "React",
-      "TypeScript",
-      "MUI",
-      "Module Federation"
-    ],
-    "githubUrl": "https://github.com/davidefedele/enterprise-ui-library"
+    "tags": ["Next.js", "Three.js", "Tailwind CSS", "Cloudflare Workers", "Claude Code"],
+    "githubUrl": "https://github.com/davixx95/nextjs-portfolio",
+    "liveUrl": "https://davide.fedele.dev"
   },
   {
-    "id": "project-3",
-    "title": "Banking Customer Journey & Internal Portals",
-    "description": "Prototyped a banking customer journey and built internal legal consulting tools involving complex forms and data tables.",
-    "status": "active",
-    "tags": [
-      "React",
-      "Angular",
-      "Jenkins"
-    ],
-    "githubUrl": "https://github.com/davidefedele/banking-customer-journey"
+    "id": "telemetry",
+    "title": "Real-Time Telemetry Dashboard",
+    "description": "Frontend for pharmaceutical client Alfasigma's production telemetry: state management moved from useEffect chains to Recoil selectors for REST API polling, with Recharts-based analytics views.",
+    "status": "completed",
+    "tags": ["React", "TypeScript", "Recoil", "Recharts" ]
   },
   {
-    "id": "dhyana",
-    "title": "User Access Management (UAM) Dashboard",
-    "description": "Architected and developed a modern single-page application (SPA) in Vue.js to replace a legacy Angular administration tool.",
-    "status": "finished",
-    "tags": [
-      "Vue 3",
-      "TypeScript",
-      "Pinia",
-      "Vite",
-      "Tailwind CSS"
-    ]
+    "id": "bigfix-ui",
+    "title": "BigFix UI Component Library",
+    "description": "Reusable React component library on top of MUI, built with a US-based team for HCL's BigFix, plus features across micro-frontends integrated via Module Federation.",
+    "status": "completed",
+    "tags": ["React", "TypeScript", "Zustand", "MUI", "Module Federation"]
+  },
+  {
+    "id": "ntt-journeys",
+    "title": "Customer Journey & Internal Portals",
+    "description": "At NTT DATA: key components for an online course customer journey with a full Jest, React Testing Library and Protractor test suite, and an internal legal consulting portal with complex data tables and multi-page forms.",
+    "status": "completed",
+    "tags": ["React", "Angular", "Jest", "Protractor", "Jenkins"]
+  },
+  {
+    "id": "association-rewrite",
+    "title": "Association Management System Rewrite",
+    "description": "Freelance, solo: rebuilt the frontend of a private client's internal management system from scratch, replacing a legacy Angular UI with Vue 3, Vite and Tailwind CSS.",
+    "status": "completed",
+    "tags": ["Vue 3", "TypeScript", "Pinia", "Vite", "Tailwind CSS"]
   }
 ]

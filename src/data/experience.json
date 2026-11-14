@@ -8,16 +8,20 @@
     "isCurrent": true,
     "type": "Full-Time",
     "highlights": [
-      "Refactored a factory line monitoring dashboard, replacing legacy useEffect-based data fetching with Recoil selectors for REST API polling.",
-      "Significantly reduced application re-renders and eliminated UI jank by redesigning data fetching modules with Recoil and Axios.",
-      "Utilized Test-Driven Development (TDD) and AI tooling to rapidly prototype and integrate new modules.",
-      "Maintained comprehensive analytics dashboards using Recharts to visualize factory telemetry."
+      "Maintain and extend the Next.js application behind Gleater, a smart fridge retail platform for client Pellegrini: QR-based unlock and checkout, plus a companion web storefront for office meal delivery, shipped to iOS and Android with Capacitor.",
+      "Keep Node.js and Next.js up to date and make the GitHub Actions deployment pipeline more reproducible, gaining hands-on exposure across the full stack.",
+      "Ship features with Claude Code in a test-first loop: I scope the change, the agent writes code and tests together, and I review the diff and validate it in CI before merging.",
+      "Built the frontend of a real-time telemetry dashboard for pharmaceutical client Alfasigma, moving state management from useEffect chains to Recoil selectors and shipping Recharts analytics views."
     ],
     "techStack": [
+      "Next.js",
       "React",
       "TypeScript",
+      "Capacitor",
+      "Node.js",
+      "GitHub Actions",
+      "Claude Code",
       "Recoil",
-      "Axios",
       "Recharts",
       "Vitest"
     ]
@@ -31,11 +35,12 @@
     "isCurrent": false,
     "type": "Full-Time",
     "highlights": [
-      "Contributed to a core UI component library built on top of Material UI (MUI), standardizing foundational design elements like Data Tables and buttons.",
-      "Developed and maintained features across multiple micro-frontends integrated via a Module Federation architecture.",
-      "Collaborated asynchronously with global engineering teams (US and India), attending early-morning syncs and ensuring smooth cross-timezone alignment."
+      "Onboarded quickly onto BigFix, HCL's flagship product, shipping critical features within the first week.",
+      "Built a reusable React component library on top of Material UI (MUI) with a US-based team, standardizing foundations like data tables and buttons across the product.",
+      "Developed features across multiple micro-frontends integrated via a Module Federation architecture.",
+      "Reviewed PRs regularly in an Agile team, enforcing coding standards and coordinating with engineering teams in the US and India across time zones."
     ],
-    "techStack": ["React", "TypeScript", "MUI", "Module Federation", "BigFix"]
+    "techStack": ["React", "TypeScript", "Zustand", "MUI", "Module Federation", "BigFix"]
   },
   {
     "id": "NTTData",
@@ -46,15 +51,15 @@
     "isCurrent": false,
     "type": "Full-Time",
     "highlights": [
-      "Developed an internal legal consulting portal, building complex data tables and multi-page forms using proprietary UI libraries.",
-      "Prototyped the initial visual mocks and component layouts for a new banking customer journey application.",
-      "Independently diagnosed and resolved a critical Jenkins CI/CD pipeline failure during a team absence by identifying a deeply buried library version conflict.",
-      "Monitored incoming defect dashboards and assisted senior engineers in troubleshooting production issues."
+      "Maintained a zero-defect rate on enterprise projects in the highly regulated banking sector through rigorous QA.",
+      "Built key components for an online course customer journey, backed by a full Jest, React Testing Library and Protractor test suite.",
+      "Developed an internal legal consulting portal, building complex data tables and multi-page forms with proprietary UI libraries.",
+      "Diagnosed and resolved a critical Jenkins CI/CD pipeline failure under a tight deadline, tracing it to a deeply buried library version conflict."
     ],
     "techStack": [
-      "React",
       "Angular",
-      "Internal UI Libraries",
+      "RxJS",
+      "Protractor",
       "Jenkins CI/CD"
     ]
   }

@@ -20,8 +20,7 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
   const tabs = [
     { id: "all", label: "All Projects" },
     { id: "active", label: "Active" },
-    { id: "in-development", label: "In Development" },
-    { id: "planned", label: "Planned" },
+    { id: "completed", label: "Completed" },
   ];
 
   const filteredProjects = projects.filter((project) => {
@@ -33,10 +32,8 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
     switch (status) {
       case "active":
         return "status-active";
-      case "development":
-        return "status-dev";
-      case "planned":
-        return "status-planned";
+      case "completed":
+        return "status-done";
       default:
         return "standard";
     }
@@ -50,14 +47,14 @@ export function ProjectsSection({ projects }: ProjectsSectionProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-mono text-primary uppercase tracking-wider">
               <FolderGit2 className="w-4 h-4" />
-              <span>FEATURED WORK & BACKLOG</span>
+              <span>SELECTED WORK</span>
             </div>
             <h2 className="text-3xl font-bold font-sans text-text-main">
               Projects & Engineering Work
             </h2>
             <p className="text-sm text-text-muted max-w-xl">
-              Open-source applications, tools, and planned architecture
-              side-projects.
+              Client work is under NDA, so those entries are descriptions
+              only. This site&apos;s source is public on GitHub.
             </p>
           </div>
 

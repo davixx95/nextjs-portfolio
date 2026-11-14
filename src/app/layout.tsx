@@ -19,9 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const title = "Davide Fedele | Senior Fullstack & Systems Engineer";
+const title = "Davide Fedele | Frontend Engineer";
 const description =
-  "Engineering clean, high-performance web applications, cloud architecture, and microservices with Next.js, TypeScript, and Docker.";
+  "Frontend Engineer in Rome (remote) building React and Next.js products for enterprise clients, growing toward full-stack ownership.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,11 +29,10 @@ export const metadata: Metadata = {
   description,
   keywords: [
     "Davide Fedele",
-    "Fullstack Engineer",
-    "Systems Engineer",
-    "Next.js 15",
+    "Frontend Engineer",
+    "React",
+    "Next.js",
     "TypeScript",
-    "Docker",
     "Web Developer Portfolio",
   ],
   authors: [{ name: "Davide Fedele" }],

@@ -6,8 +6,7 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
     | "primary"
     | "standard"
     | "status-active"
-    | "status-dev"
-    | "status-planned";
+    | "status-done";
   children: React.ReactNode;
 }
 
@@ -25,8 +24,7 @@ export function Badge({
     standard:
       "text-text-muted bg-slate-800/40 dark:bg-slate-800/60 bg-slate-100 border-border",
     "status-active": "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-    "status-dev": "text-amber-400 bg-amber-500/10 border-amber-500/30",
-    "status-planned": "text-sky-400 bg-sky-500/10 border-sky-500/30",
+    "status-done": "text-sky-400 bg-sky-500/10 border-sky-500/30",
   };
 
   return (

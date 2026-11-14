@@ -71,10 +71,12 @@ export function HeroSection({ coreStack }: { coreStack: string[] }) {
 
             {/* Impactful & Likable Bio */}
             <p className="order-4 lg:order-none text-base sm:text-lg text-text-muted font-sans leading-relaxed max-w-2xl">
-              <strong className="text-text-main font-semibold">React</strong>{" "}
-              ecosystem expert. I build resilient, high-performance web
-              applications for enterprise clients, blending deep technical
-              precision with business-driven results.
+              <strong className="text-text-main font-semibold">
+                Frontend Engineer
+              </strong>{" "}
+              specializing in React and Next.js, building web and mobile
+              products for enterprise clients. Growing toward full-stack
+              ownership: CI/CD pipelines, Node.js and platform upgrades.
             </p>
 
             {/* Action Buttons & Social Links */}
