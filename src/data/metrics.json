@@ -7,14 +7,14 @@
   },
   {
     "id": "metric-2",
-    "label": "ENTERPRISE APPS",
-    "value": "5",
-    "description": "Contributed to production platforms across Contrader, HCL, and NTT DATA"
+    "label": "PLATFORMS, ONE CODEBASE",
+    "value": "3",
+    "description": "Web, iOS and Android from the Next.js codebase I work on daily"
   },
   {
     "id": "metric-3",
-    "label": "GLOBAL COLLABORATION",
+    "label": "TIMEZONES",
     "value": "3",
-    "description": "Timezones spanned working with engineering teams in the US, Europe, and India"
+    "description": "Day-to-day collaboration with engineering teams in the US, Europe, and India"
   }
 ]

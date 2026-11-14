@@ -55,9 +55,7 @@ function buildAbout(experiences: WorkExperience[], metrics: Metric[]) {
     "# Davide Fedele",
     `${current?.role ?? "Front End Developer"} · Rome, Italy (Remote)`,
     "",
-    "Frontend Engineer specializing in React and Next.js, building web",
-    "and mobile products for enterprise clients. Growing toward",
-    "full-stack ownership: CI/CD pipelines, Node.js and platform upgrades.",
+    "Frontend Engineer specializing in React and Next.js, building web and mobile products for enterprise clients. Growing toward full-stack ownership: CI/CD pipelines, Node.js and platform upgrades.",
     "",
     "## Quick facts",
     ...metrics.map((m) => `- ${m.value} ${m.label.toLowerCase()}: ${m.description}`),
@@ -68,6 +66,24 @@ function buildAbout(experiences: WorkExperience[], metrics: Metric[]) {
     "- Daily driver: NixOS + Hyprland + nvim",
     "",
     "Next: `ls experience` or `cat contact.txt`",
+  ].join("\n");
+}
+
+function buildHowIWork() {
+  return [
+    "# How I work",
+    "",
+    // Prose stays on one line per paragraph: the terminal soft-wraps to
+    // its own width, and hard breaks would double-wrap on narrow screens.
+    "I don't do my best work from memory under a stopwatch, and neither does anyone else. Give me a problem and some time, and I'll get up to speed on the codebase, check my assumptions, and come back with a solution I've verified.",
+    "",
+    "That's how I've joined every team so far: steadily, and with work that holds up.",
+    "",
+    "## In practice",
+    "- I read the code before I change it",
+    "- I'd rather ask one more question than ship one more bug",
+    "- AI writes drafts; I review every diff, run the tests and check the result myself",
+    "- When I don't know something, I say so, then I go find out",
   ].join("\n");
 }
 
@@ -125,6 +141,7 @@ export function buildFs(): FsDir {
 
   return dir({
     "about.md": file(buildAbout(experiences, metrics)),
+    "how-i-work.md": file(buildHowIWork()),
     "contact.txt": file(buildContact()),
     "resume.pdf": {
       type: "file",
@@ -152,7 +169,7 @@ export function buildFs(): FsDir {
         "nice try.",
         "",
         "the only secret here is that this whole site is a static export",
-        "and this 'computer' is ~270 triangles and a <div>.",
+        "and this 'computer' is ~1.2k triangles and a <div>.",
         "",
         "(psst: try `sudo`)",
       ].join("\n"),
